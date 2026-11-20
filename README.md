@@ -38,7 +38,12 @@ Mọi giá trị nằm trong [game.contract.json](game.contract.json). Giả đ�
 - `AGENTS.md`: harness cho agent.
 
 ## Sáng tạo của tôi
-Chưa có ở Phase 1 (ưu tiên đúng yêu cầu trước).
+Gợi ý nguy hiểm chỉ ở giao diện, không đổi số chuẩn hay đầu ra headless (lõi `sim/` không biết về chúng):
+- Mũi tên đỏ ở rìa màn hình chỉ tới Bóng Mực đang đuổi nằm ngoài tầm nhìn (trong 18 m); mắt Bóng Mực đỏ khi đang đuổi.
+- Viền đỏ và tiếng cảnh báo khi có Bóng Mực đang đuổi trong 10 m.
+- Vòng vàng mờ bán kính 5 m quanh Mây khi Tỏa Sáng dùng được và Bóng Mực đã tới gần.
+
+Bằng chứng lõi vẫn đúng: `bash scripts/verify.sh` (145/145). Giao diện của các gợi ý mới chỉ kiểm tra là trang tải được, chưa thấy trực tiếp mũi tên và viền đỏ khi có Bóng Mực.
 
 ## Bằng chứng Phase 2
 Chạy lại: `bash scripts/verify.sh` (log: [evidence/phase-2/verify.log](evidence/phase-2/verify.log), scenario trong `scenarios/`).

@@ -88,6 +88,7 @@ const SFX = {
   spawn: () => tone(110, 0.6, { type: 'sawtooth', gain: 0.12, to: 70 }),
   tick: () => tone(1000, 0.08, { type: 'square', gain: 0.1 }),
   charm: () => (tone(660, 0.2, { gain: 0.18, to: 990 }), tone(990, 0.3, { gain: 0.15, delay: 0.12 })),
+  warn: () => tone(190, 0.14, { type: 'square', gain: 0.07 }),
   steal: () => tone(700, 0.3, { type: 'triangle', gain: 0.18, to: 250 }),
 };
 function startMusic() {
@@ -137,6 +138,11 @@ scene.add(moon);
 
 const mat = (c, o = {}) => new THREE.MeshLambertMaterial({ color: c, ...o });
 const glowMat = (c, op = 0.55) => new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
+
+const pulsePreview = new THREE.Mesh(new THREE.RingGeometry(T.pulse_radius - 0.08, T.pulse_radius, 64), glowMat(C.gold, 0.35));
+pulsePreview.rotation.x = -Math.PI / 2;
+pulsePreview.visible = false;
+scene.add(pulsePreview);
 
 // Mây
 const maya = new THREE.Group();
@@ -287,7 +293,7 @@ function makeShade() {
   eyes.position.set(-0.22, 0.15, 0.6);
   e2.position.set(0.22, 0.15, 0.6);
   g.add(body, edge, eyes, e2);
-  g.userData = { body, edge };
+  g.userData = { body, edge, eyeMat: eyes.material };
   return g;
 }
 function makeDrifter() {
@@ -321,6 +327,7 @@ let runScore = 0;
 let seed = Number(q.get('seed')) || (Date.now() & 0x7fffffff);
 let yaw = 0;
 let lastTimeInt = 999;
+let lastWarn = 0;
 let prevGrounded = true;
 const keys = new Set();
 
@@ -559,6 +566,46 @@ function updateHud() {
       arrow.style.transform = `rotate(${Math.atan2(x, y)}rad)`;
     }
   } else arrow.style.display = 'none';
+  // goi y nguy hiem (chi hien thi, khong doi luat): mui ten do toi Bong Muc dang duoi o ngoai man hinh,
+  // vien do khi co bong < 10 m, am canh bao, va vong ban kinh Toa Sang khi dung duoc
+  const chasers = [];
+  for (const sh of s.shades) {
+    if (sh.state !== 'chase') continue;
+    chasers.push({ sh, d: Math.hypot(p.pos[0] - sh.pos[0], p.pos[2] - sh.pos[2]) });
+  }
+  chasers.sort((a, b) => a.d - b.d);
+  const nearestD = chasers.length ? chasers[0].d : Infinity;
+  const danger = s.state === 'playing' && nearestD < 10 ? Math.min(1, (10 - nearestD) / 7) : 0;
+  $('vignette').style.opacity = (danger * 0.85).toFixed(2);
+  if (danger > 0 && nearestD < 7 && performance.now() - lastWarn > 700) {
+    lastWarn = performance.now();
+    SFX.warn();
+  }
+  const pool = $('threats');
+  while (pool.children.length < 4) {
+    const a = document.createElement('div');
+    a.className = 'tarrow';
+    pool.appendChild(a);
+  }
+  [...pool.children].forEach((el, i) => {
+    const c = chasers[i];
+    if (!c || c.d > 18 || s.state !== 'playing') return void (el.style.display = 'none');
+    projV.set(c.sh.pos[0], c.sh.pos[1], c.sh.pos[2]).project(camera);
+    const behind = projV.z > 1;
+    if (!behind && Math.abs(projV.x) < 0.95 && Math.abs(projV.y) < 0.92) return void (el.style.display = 'none');
+    let x = behind ? -projV.x : projV.x;
+    let y = behind ? -projV.y : projV.y;
+    const m = Math.max(Math.abs(x), Math.abs(y)) || 1;
+    x /= m;
+    y /= m;
+    el.style.display = 'block';
+    el.style.left = `${((x * 0.8 + 1) / 2) * innerWidth - 10}px`;
+    el.style.top = `${((1 - y * 0.75) / 2) * innerHeight - 10}px`;
+    el.style.transform = `rotate(${Math.atan2(x, y)}rad)`;
+  });
+  const pulseReady = p.pulseCd === 0 && p.carried >= T.pulse_cost;
+  pulsePreview.visible = pulseReady && nearestD < T.pulse_radius + 4;
+  pulsePreview.position.set(p.pos[0], p.pos[1] + 0.08, p.pos[2]);
   // dem nguoc 10 giay cuoi
   if (secs <= 10 && secs !== lastTimeInt && s.state === 'playing') SFX.tick();
   lastTimeInt = secs;
@@ -605,6 +652,7 @@ function syncMeshes(now, dt) {
     const stun = sh.state === 'stunned';
     o.userData.body.material.color.setHex(stun ? C.shadeStun : C.shade);
     o.scale.setScalar(sh.state === 'spawning' ? 0.5 : 1);
+    o.userData.eyeMat.color.setHex(sh.state === 'chase' ? 0xff5a5f : C.shadeEdge);
   }
   for (const [id, o] of dyn.shades) if (!seen.has(id)) (scene.remove(o), dyn.shades.delete(id));
 
@@ -694,6 +742,9 @@ function frame(now) {
     camera.lookAt(0, 2, 0);
     $('prompt').style.display = 'none';
     $('arrow').style.display = 'none';
+    $('vignette').style.opacity = 0;
+    pulsePreview.visible = false;
+    for (const el of $('threats').children) el.style.display = 'none';
   }
   if (q.has('debug') && fpsAcc > 1) {
     $('debug').textContent = `${(fpsN / fpsAcc).toFixed(0)} FPS`;
