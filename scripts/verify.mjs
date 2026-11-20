@@ -222,9 +222,9 @@ const four = [{ id: 'L1', lit: true }, { id: 'L2', lit: true }, { id: 'L3', lit:
   check('Mây bat tu: bong cham khong lam gi (bong van chase)', ev(inv, 'player_hit').length === 0 && inv.at(30).shades[0].state === 'chase');
   const up = run({ name: 'hit-height', ticks: 1, scenario: sc({ player: { pos: [0, 2, 0] }, shades: [{ id: 'A', pos: [0.5, 0] }] }) });
   check('chenh cao > 1.5: khong cham', ev(up, 'player_hit').length === 0);
-  const edge = run({ name: 'hit-radius', ticks: 1, scenario: sc({ shades: [{ id: 'A', pos: [1.06, 0] }] }) });
-  const edge2 = run({ name: 'hit-radius-out', ticks: 1, scenario: sc({ shades: [{ id: 'A', pos: [1.2, 0] }] }) });
-  check('ban kinh cham 1.0 (XZ): 1.06 -> 0.993 trung, 1.2 -> 1.133 khong', ev(edge, 'player_hit').length === 1 && ev(edge2, 'player_hit').length === 0);
+  const edge = run({ name: 'hit-radius', ticks: 1, scenario: sc({ shades: [{ id: 'A', pos: [1 + 0.9 * (T.shade_speed / 60), 0] }] }) });
+  const edge2 = run({ name: 'hit-radius-out', ticks: 1, scenario: sc({ shades: [{ id: 'A', pos: [1 + 1.1 * (T.shade_speed / 60), 0] }] }) });
+  check('ban kinh cham 1.0 (XZ): sau 1 tick tien lai, cach 0.99 trung, 1.01 khong', ev(edge, 'player_hit').length === 1 && ev(edge2, 'player_hit').length === 0);
 }
 
 // ===== Roi khoi dao

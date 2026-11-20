@@ -27,7 +27,7 @@ Chế độ headless: `node sim/cli.mjs --seed 1 --night 1 --ticks 600 --out out
 ## Luật và điểm (số chuẩn Ticket-02)
 - 3 Đêm: Đảo Bến (300 s, 5 đèn), Đảo Cau (330 s, 6 đèn, cầu tre và bục nhảy), Đảo Chuông (360 s, 7 đèn, 3 tầng, dốc, gió mạnh). Ngọn Lửa hồi đầy đầu mỗi Đêm.
 - Đom đóm: mang tối đa 10, mỗi đèn cần 10. Tự nhặt trong 1 m. Bùa Gió (đỏ viền vàng): 10 giây chạy 7.2 m/s và lướt không hồi chiêu.
-- Bóng Mực chạm: −1 Ngọn Lửa, rơi nửa số đom đóm mang, bất tử 1.5 s. Gió Lạc cướp tới 3 đom đóm nếu bạn mang ≥ 5. Rơi khỏi đảo: −1 Ngọn Lửa, mất hết đom đóm, hồi sinh sau 1 s.
+- Bóng Mực di chuyển 2.8 m/s (Đêm 3: 3.2), chậm hơn số chuẩn 4.0 (4.5) của Ticket, xem [SPEC-PHASE2.md](SPEC-PHASE2.md). Bóng Mực chạm: −1 Ngọn Lửa, rơi nửa số đom đóm mang, bất tử 1.5 s. Gió Lạc cướp tới 3 đom đóm nếu bạn mang ≥ 5. Rơi khỏi đảo: −1 Ngọn Lửa, mất hết đom đóm, hồi sinh sau 1 s.
 - Điểm: +10 mỗi đom đóm nạp, +100 mỗi đèn, +5 mỗi Bóng Mực trúng Tỏa Sáng; khi thắng + 2 × giây còn lại + 50 × Ngọn Lửa còn lại. Tổng điểm game là tổng các Đêm đã thắng. Thắng Đêm 3 thì tới màn Bình Minh.
 
 Mọi giá trị nằm trong [game.contract.json](game.contract.json). Giả định: [ASSUMPTIONS.md](ASSUMPTIONS.md) (Phase 1), [SPEC-PHASE2.md](SPEC-PHASE2.md) (Phase 2).

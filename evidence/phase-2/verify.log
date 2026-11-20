@@ -69,7 +69,7 @@ PASS  Bong Muc lui 2 m trong 60 tick (recoil)
 PASS  toi da 1 lan mat ngon lua moi tick
 PASS  Mây bat tu: bong cham khong lam gi (bong van chase)
 PASS  chenh cao > 1.5: khong cham
-PASS  ban kinh cham 1.0 (XZ): 1.06 -> 0.993 trung, 1.2 -> 1.133 khong
+PASS  ban kinh cham 1.0 (XZ): sau 1 tick tien lai, cach 0.99 trung, 1.01 khong
 PASS  roi: dung 1 lan, bo qua bat tu, -1 ngon lua, mat het dom dom
 PASS  cho 60 tick roi hoi sinh o (0,0,0) van toc 0, bat tu 90
 PASS  sau roi: carried 0
@@ -131,7 +131,7 @@ PASS  lich sinh va hoi chieu dung yen khi tam dung (khong sinh Bong Muc o tick 3
 PASS  tat dinh dem 1: cung seed byte-identical, khac seed khac
 PASS  tat dinh dem 2: cung seed byte-identical, khac seed khac
 PASS  tat dinh dem 3: cung seed byte-identical, khac seed khac
-PASS  hieu nang: 1 dem day du (21600 tick) <= 30 s (do duoc 272 ms)
+PASS  hieu nang: 1 dem day du (21600 tick) <= 30 s (do duoc 339 ms)
 PASS  exit 2: inputs khong phai JSON
 PASS  exit 2: inputs tick khong tang chat
 PASS  exit 2: inputs move ngoai [-1,1]
