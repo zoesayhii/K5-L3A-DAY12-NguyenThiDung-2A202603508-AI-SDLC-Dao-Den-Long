@@ -1,6 +1,6 @@
 # Đảo Đèn Lồng (Day 12 AI SDLC) — Nguyễn Thị Dũng, 2A202603508
 
-> **Video demo:** _chưa quay: xem [docs/demo/SCRIPT.md](docs/demo/SCRIPT.md); sẽ đính kèm Release `v1.0.0` hoặc `docs/demo/demo.mp4`_
+> **Video demo:** [docs/demo/demo.mp4](docs/demo/demo.mp4) (2 phút 42 giây, tự quay bằng `docs/demo/record.mjs`: Chrome headless + bot chơi game; chỉ phần game, chưa có phần terminal)
 > Đề bài gốc của lab: [docs/LAB-README.md](docs/LAB-README.md)
 
 Game 3D góc nhìn thứ ba (Three.js). Mây, người giữ đèn nhỏ tuổi, gom đom đóm để giữ cho các Đèn Lồng Lớn sáng tới bình minh, né Bóng Mực và Gió Lạc trên ba hòn đảo. Lõi mô phỏng tất định (`sim/`) dùng chung cho game, chế độ headless, benchmark và soak test.
@@ -85,7 +85,7 @@ Gợi ý nguy hiểm chỉ ở giao diện, không đổi số chuẩn hay đầ
 
 ## Trung thực về những gì chưa kiểm chứng
 - **Giao diện chưa có test tự động.** Menu, tạm dừng, đổi phím khi bấm thật, chuyển Đêm, màn thắng/thua, lưu tên vào bảng xếp hạng từ giao diện, và âm thanh chưa được thao tác/nghe thử (chỉ có ảnh các màn hình và API bảng xếp hạng được kiểm tra bằng test + `curl`).
-- **Video demo chưa có** (không tự quay được trong môi trường làm việc này).
+- **Video demo** chỉ quay phần game (menu, Đêm 1–3, cài đặt, bảng xếp hạng) bằng bot tự chơi; phần terminal (verify, soak, bench) chưa có, xem [docs/demo/SCRIPT.md](docs/demo/SCRIPT.md).
 - Chưa đo trên máy chấm của giảng viên; chưa kiểm thử Docker.
 - Số token/chi phí AI: xem [docs/RETRO.md](docs/RETRO.md) (cần tác giả bổ sung).
 
