@@ -1,0 +1,12 @@
+{
+  "contract_version": "1.3",
+  "avg_fps": 325.7,
+  "p1_low_fps": 113.4,
+  "frame_ms_p95": 5.8,
+  "frames": 9772,
+  "load_ms": 840,
+  "peak_mem_mb": 1708,
+  "vsync_off": true,
+  "renderer": "three.js r187 (WebGL2) / ANGLE (Intel, Mesa Intel(R) UHD Graphics (TGL GT2), OpenGL ES 3.2); windowed Google Chrome 157.0.8103.78",
+  "os": "linux 6.8.0-149-generic x64; 11th Gen Intel(R) Core(TM) i3-1115G4 @ 3.00GHz x4; 15 GB RAM"
+}

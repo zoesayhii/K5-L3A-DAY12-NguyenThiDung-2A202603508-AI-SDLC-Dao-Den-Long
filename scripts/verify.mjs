@@ -1,9 +1,12 @@
-// Kiem chung headless (contract v1.2). Phase 1-2 hoi quy; test bi luat Phase 3 lam sai duoc cap nhat, moi cho ghi "[P3]" + ly do (xem docs/CHANGELOG.md).
+// Kiem chung headless (contract v1.3). Phase 1-2 hoi quy; test bi luat Phase 3 lam sai duoc cap nhat, moi cho ghi "[P3]" + ly do (xem docs/CHANGELOG.md).
 // Chay: node scripts/verify.mjs (hoac scripts/verify.sh). Scenario duoc ghi ra scenarios/ lam bang chung.
 import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdtempSync, existsSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
+import { createSim } from '../sim/sim.mjs';
+import { benchScenario, benchCamera, BENCH_SHADES, BENCH_MOTES } from '../sim/bench.mjs';
+import { NAME_RE, validateEntry, sortEntries, makeEntry, addEntry, saveEntries, loadEntries, exportLeaderboard } from '../server/leaderboard.mjs';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -63,7 +66,8 @@ const four = [{ id: 'L1', lit: true }, { id: 'L2', lit: true }, { id: 'L3', lit:
   const s0 = r.snaps[0];
   check('snapshot 0: Mây o (0,0,0), grounded, dem 1', JSON.stringify(s0.player.pos) === '[0,0,0]' && s0.player.grounded && s0.night === 1);
   // [P3] contract 1.1 -> 1.2, thoi gian Dem 300/330/360 -> 240/270/300 (Ticket-03 muc 3, 7)
-  check('contract v1.2 + tuning chuan', contract.contract_version === '1.2' && T.player_speed === 6 && T.carry_capacity === 10 && T.lantern_cost === 10 && T.dash_speed === 14 && T.night1_duration_s === 240 && T.night2_duration_s === 270 && T.night3_duration_s === 300 && T.fuel_max === 100 && T.relight_cost === 5 && T.win_ratio === 0.6 && T.capacity_max === 20);
+  // [P4] contract 1.2 -> 1.3 (them bench_cmd, soak_cmd; luat khong doi)
+  check('contract v1.3 + tuning chuan + bench_cmd/soak_cmd', contract.contract_version === '1.3' && !!contract.bench_cmd && !!contract.soak_cmd && !!contract.run_cmd && T.player_speed === 6 && T.carry_capacity === 10 && T.lantern_cost === 10 && T.dash_speed === 14 && T.night1_duration_s === 240 && T.night2_duration_s === 270 && T.night3_duration_s === 300 && T.fuel_max === 100 && T.relight_cost === 5 && T.win_ratio === 0.6 && T.capacity_max === 20);
   check('time_left_s = 240 - sim_tick/60 [P3: 300 -> 240]', s0.time_left_s === T.night1_duration_s && near(r.snaps[6].time_left_s, T.night1_duration_s - 1, 0.001));
   const keys = ['night', 'wind', 'motes', 'drifters', 'charms'];
   const pk = ['vel', 'grounded', 'invuln', 'dash_cd_s', 'pulse_cd_s', 'charm_s'];
@@ -468,6 +472,67 @@ const four = [{ id: 'L1', lit: true }, { id: 'L2', lit: true }, { id: 'L3', lit:
   const tgt2 = run({ name: 'wander-target-unlit', ticks: 61, scenario: sc({ player: { pos: [0, 38] }, lanterns: [lit('L1', 100, { pos: [0, 20] })], shades: [{ id: 'A', pos: [30, 0], state: 'wander' }] }) });
   const dist = (t) => Math.hypot(tgt2.at(t).shades[0].pos[0] - 23.8, tgt2.at(t).shades[0].pos[2] - 7.7);
   check('khong co den yeu: di ve den tat gan nhat (L2), toc do 4 m/s', tgt2.at(1).shades[0].target_lantern_id === 'L2' && near(dist(1) - dist(61), 4, 0.3), `${dist(1)} -> ${dist(61)}`);
+}
+
+// ===== [P4] Soak test, bang xep hang, canh benchmark
+{
+  const soakOut = join(out, 'soak.json');
+  const t0 = Date.now();
+  const r = spawnSync('node', ['--expose-gc', 'sim/soak.mjs', '--seed', '7', '--nights', '10', '--out', soakOut], { cwd: root, encoding: 'utf8' });
+  const soak = existsSync(soakOut) ? JSON.parse(readFileSync(soakOut, 'utf8')) : {};
+  check('soak: 10 dem lien tiep, crashes 0, ket qua won/lost', r.status === 0 && soak.nights === 10 && soak.crashes === 0 && soak.results?.length === 10 && soak.results.every((x) => x === 'won' || x === 'lost'), r.stderr);
+  check(`soak: mem_end <= 1.2 x mem_start (${soak.mem_start_mb} -> ${soak.mem_end_mb} MB)`, soak.mem_end_mb <= 1.2 * soak.mem_start_mb);
+  const soak2Out = join(out, 'soak2.json');
+  spawnSync('node', ['--expose-gc', 'sim/soak.mjs', '--seed', '7', '--nights', '10', '--out', soak2Out], { cwd: root });
+  check('soak: tat dinh theo seed (cung seed => cung chuoi ket qua)', JSON.stringify(soak.results) === JSON.stringify(JSON.parse(readFileSync(soak2Out, 'utf8')).results));
+  const bad = spawnSync('node', ['sim/soak.mjs', '--seed', '7'], { cwd: root, encoding: 'utf8' });
+  check('soak: thieu --out => loi', bad.status !== 0 && bad.stderr.length > 0);
+  check(`soak: nhanh (${((Date.now() - t0) / 1000).toFixed(1)} s cho 2 lan)`, Date.now() - t0 < 60000);
+}
+{
+  const e = (name, score, t) => ({ name, score, nights_won: 1, achieved_at: new Date(t).toISOString(), seed: 1 });
+  check('ten hop le 3-12 [A-Za-z0-9_]', ['abc', 'Mây', 'a_b_c_d_e_f_', 'ABC123'].map((n) => NAME_RE.test(n)).join() === 'true,false,true,true' && !NAME_RE.test('ab') && !NAME_RE.test('a'.repeat(13)) && !NAME_RE.test('co dau') && !NAME_RE.test('a-b-c'));
+  check('validate: score/nights_won/seed sai bi tu choi', validateEntry({ name: 'abc', score: 1, nights_won: 4, seed: 1 }) !== null && validateEntry({ name: 'abc', score: -1, nights_won: 1, seed: 1 }) !== null && validateEntry({ name: 'abc', score: 1.5, nights_won: 1, seed: 1 }) !== null && validateEntry({ name: 'abc', score: 5, nights_won: 0, seed: 1 }) === null);
+  const sorted = sortEntries([e('aaa', 100, 3000), e('bbb', 200, 2000), e('ccc', 100, 1000), e('ddd', 200, 5000)]);
+  check('xep theo score giam dan; bang diem ai dat truoc dung tren', sorted.map((x) => x.name).join() === 'bbb,ddd,ccc,aaa');
+  let entries = [];
+  for (let i = 0; i < 15; i++) entries = addEntry(entries, e(`p${String(i).padStart(2, '0')}`, i * 10, 1000 + i)).entries;
+  check('giu top 10 (diem thap nhat bi loai)', entries.length === 10 && entries[0].score === 140 && entries[9].score === 50);
+  const same = addEntry(entries, e('late', 50, 9e12));
+  check('moi vao bang diem voi muc cuoi nhung dat sau: khong len top', same.rank === null);
+  const dir = mkdtempSync(join(tmpdir(), 'ddl-lb-'));
+  const file = join(dir, 'leaderboard.json');
+  saveEntries(entries, file);
+  check('luu tren dia va doc lai sau khi "mo lai" (dung thu tu)', JSON.stringify(loadEntries(file)) === JSON.stringify(entries));
+  const exp = join(dir, 'exp.json');
+  const r = spawnSync('node', ['server.mjs', '--export-leaderboard', exp], { cwd: root, encoding: 'utf8', env: { ...process.env, DDL_DATA_DIR: dir } });
+  const ex = existsSync(exp) ? JSON.parse(readFileSync(exp, 'utf8')) : {};
+  const fields = ['name', 'score', 'nights_won', 'achieved_at', 'seed'];
+  check('lenh xuat: node server.mjs --export-leaderboard out.json => {"entries":[...]} dung thu tu, du truong, ISO 8601', r.status === 0 && ex.entries?.length === 10 && ex.entries.every((x) => fields.every((f) => f in x) && /^\d{4}-\d\d-\d\dT/.test(x.achieved_at)) && ex.entries[0].score === 140);
+  const noFile = spawnSync('node', ['server.mjs', '--export-leaderboard', join(dir, 'e2.json')], { cwd: root, encoding: 'utf8', env: { ...process.env, DDL_DATA_DIR: join(dir, 'khong-ton-tai') } });
+  check('xuat khi chua co bang: entries rong, exit 0', noFile.status === 0 && JSON.parse(readFileSync(join(dir, 'e2.json'), 'utf8')).entries.length === 0);
+}
+{
+  const contractC = contract;
+  const sc = benchScenario(42);
+  const g = createSim({ contract: contractC, seed: 42, night: 1, scenario: sc, bench: true });
+  const s0 = g.snapshot();
+  check(`canh bench: ${BENCH_SHADES} Bong Muc wander + ${BENCH_MOTES} dom dom + L1-L3 sang fuel 100, Mây o (0,0,0)`, s0.shades.length === 200 && s0.shades.every((x) => x.state === 'wander') && s0.motes_active === 100 && s0.lanterns.slice(0, 3).every((l) => l.lit && l.fuel === 100) && s0.lanterns.slice(3).every((l) => !l.lit) && s0.player.pos.join() === '0,0,0');
+  check('canh bench: bong rai deu tren dao (ca 4 phan tu deu co bong)', [0, 1, 2, 3].every((q) => s0.shades.some((x) => (x.pos[0] >= 0 ? 0 : 1) + (x.pos[2] >= 0 ? 0 : 2) === q)) && s0.shades.every((x) => Math.hypot(x.pos[0], x.pos[2]) <= 38.001));
+  const t1 = Date.now();
+  for (let i = 0; i < 60 * 40; i++) g.step({});
+  const s1 = g.snapshot();
+  check('canh bench: khong sinh them, khong hao dau, khong nhat, khong sat thuong, khong ket thuc (40 s)', s1.shades.length === 200 && s1.motes_active === 100 && s1.lanterns.slice(0, 3).every((l) => l.fuel === 100) && s1.player.flames === 3 && s1.state === 'playing' && s1.player.carried === 0);
+  check('canh bench: Bong Muc van di chuyen (wander) va ca 200 con van tinh toan nhanh', s1.shades.some((x, i) => x.pos.join() !== s0.shades[i].pos.join()) && Date.now() - t1 < 15000);
+  const same = createSim({ contract: contractC, seed: 42, night: 1, scenario: benchScenario(42), bench: true }).snapshot();
+  check('canh bench: tat dinh theo seed (vi tri)', JSON.stringify(same) === JSON.stringify(s0));
+  const c0 = benchCamera(0);
+  const cq = benchCamera(15 / 4);
+  check('camera bench: xuat phat (30,15,0), nguoc chieu kim dong ho (1/4 vong => (0,15,30)), 15 s/vong, Y=15', c0.join() === '30,15,0' && near(cq[0], 0, 1e-9) && near(cq[2], 30, 1e-9) && benchCamera(15).every((v, i) => near(v, c0[i], 1e-9)) && benchCamera(7.5)[0] < -29.99);
+  // bench khong anh huong luat that
+  const normal = createSim({ contract: contractC, seed: 5, night: 1, scenario: { random_motes: false, random_shades: false, lanterns: [{ id: 'L1', lit: true, fuel: 50 }] } });
+  for (let i = 0; i < 60; i++) normal.step({});
+  check('co bench KHONG bat thi van hao dau binh thuong (50 -> 49 sau 1 s)', normal.snapshot().lanterns[0].fuel === 49);
 }
 
 // ===== Tat dinh, hieu nang

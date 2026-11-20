@@ -1,26 +1,18 @@
-// Server tinh nho cho ban co giao dien: node server.mjs [port]
-import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
-import { dirname, join, normalize, extname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+// Chay game: node server.mjs [port]   (mac dinh 8080)
+// Xuat bang xep hang: node server.mjs --export-leaderboard out.json
+import { createApp } from './server/app.mjs';
+import { exportLeaderboard } from './server/leaderboard.mjs';
 
-const root = dirname(fileURLToPath(import.meta.url));
-const port = Number(process.argv[2] ?? process.env.PORT ?? 8080);
-const allowed = ['/web/', '/sim/', '/node_modules/three/', '/game.contract.json'];
-const types = { '.html': 'text/html; charset=utf-8', '.mjs': 'text/javascript', '.js': 'text/javascript', '.json': 'application/json' };
-
-createServer(async (req, res) => {
-  let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
-  if (p === '/') p = '/web/index.html';
-  p = normalize(p);
-  if (!allowed.some((a) => p === a || p.startsWith(a)) || p.includes('..')) {
-    res.writeHead(404).end('not found');
-    return;
+const args = process.argv.slice(2);
+const exp = args.indexOf('--export-leaderboard');
+if (exp >= 0) {
+  const out = args[exp + 1];
+  if (!out) {
+    process.stderr.write('Dung: node server.mjs --export-leaderboard <out.json>\n');
+    process.exit(1);
   }
-  try {
-    const data = await readFile(join(root, p));
-    res.writeHead(200, { 'content-type': types[extname(p)] ?? 'application/octet-stream' }).end(data);
-  } catch {
-    res.writeHead(404).end('not found');
-  }
-}).listen(port, () => console.log(`Dao Den Long: http://localhost:${port}`));
+  exportLeaderboard(out);
+  process.exit(0);
+}
+const portArg = args.find((a) => /^\d+$/.test(a)) ?? process.env.PORT ?? 8080;
+createApp().listen(Number(portArg), () => console.log(`Dao Den Long: http://localhost:${portArg}`));

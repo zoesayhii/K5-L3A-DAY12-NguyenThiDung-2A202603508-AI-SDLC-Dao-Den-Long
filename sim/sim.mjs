@@ -82,7 +82,8 @@ function toPos3(p, what, surf) {
 export const SHADE_STATES = ['spawning', 'wander', 'chase', 'recoil', 'stunned', 'drain'];
 export const DRIFTER_STATES = ['idle', 'chase', 'flee'];
 
-export function createSim({ contract, seed, night = 1, scenario = {} }) {
+// bench: canh benchmark (Ticket-04): tat hao dau, nhat, sat thuong va dieu kien ket thuc; Bong Muc van wander binh thuong.
+export function createSim({ contract, seed, night = 1, scenario = {}, bench = false }) {
   const T = contract.tuning;
   const S = T.score;
   const map = NIGHTS[night];
@@ -409,8 +410,8 @@ export function createSim({ contract, seed, night = 1, scenario = {} }) {
     }
 
     // nhien lieu: hao 1/tick + bi hut (don vi 1/60); den het dau thi tat
-    for (const l of sim.lanterns) if (l.lit) l.fuel -= T.fuel_decay_per_s;
-    for (const s of sim.shades) {
+    if (!bench) for (const l of sim.lanterns) if (l.lit) l.fuel -= T.fuel_decay_per_s;
+    for (const s of bench ? [] : sim.shades) {
       if (s.state !== 'drain') continue;
       const l = sim.lanterns.find((x) => x.id === s.target);
       if (!l || !l.lit || l.fuel >= LOW || hd(s.pos, l.pos) > DRAIN_STAND) continue;
@@ -557,7 +558,7 @@ export function createSim({ contract, seed, night = 1, scenario = {} }) {
     const active = p.respawn === 0 && p.flames > 0;
 
     // B4: nhat dom dom va bua
-    if (active) {
+    if (active && !bench) {
       for (let i = 0; i < sim.motes.length; ) {
         const m = sim.motes[i];
         if (p.carried < capacity() && hd(p.pos, m.pos) <= T.pickup_radius && Math.abs(p.pos[1] - m.pos[1]) <= HEIGHT_TOL) {
@@ -780,7 +781,7 @@ export function createSim({ contract, seed, night = 1, scenario = {} }) {
     sim.drifters = sim.drifters.filter((d) => d.state !== 'removed');
 
     // B9: cham - Gio Lac cuop truoc, roi Bong Muc gay hit
-    if (active) {
+    if (active && !bench) {
       for (const d of [...sim.drifters].sort(idCmp)) {
         if (d.state === 'chase' && !d.stoleOnce && p.carried > 0 && hd(d.pos, p.pos) <= DRIFTER_HIT) {
           const amount = Math.min(DRIFTER_STEAL, p.carried);
@@ -848,6 +849,7 @@ export function createSim({ contract, seed, night = 1, scenario = {} }) {
     }
 
     // B11: thang / thua
+    if (bench) return sim.events;
     if (!playerAlive || p.flames <= 0) gameOver('lost', 'no_flames');
     else if (timeLeft() <= 1e-9) {
       const litN = sim.lanterns.filter((l) => l.lit).length;

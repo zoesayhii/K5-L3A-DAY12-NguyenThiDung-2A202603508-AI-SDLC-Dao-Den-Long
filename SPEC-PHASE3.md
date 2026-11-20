@@ -1,6 +1,6 @@
 # Spec Phase 3 (Ticket-03 "Đèn cạn dầu", contract v1.2)
 
-ADR: [docs/ADR-0003-den-nhien-lieu-va-luat-thang.md](docs/ADR-0003-den-nhien-lieu-va-luat-thang.md). Thay đổi phá vỡ: [docs/CHANGELOG.md](docs/CHANGELOG.md). Kiểm chứng: `scripts/verify.sh` (log `evidence/phase-3/`).
+ADR: [docs/ADR-0003-den-nhien-lieu-va-luat-thang.md](docs/ADR-0003-den-nhien-lieu-va-luat-thang.md). Thay đổi phá vỡ: [CHANGELOG.md](CHANGELOG.md). Kiểm chứng: `scripts/verify.sh` (log `evidence/phase-3/`).
 
 | Mục Ticket | Tiêu chí (làm A thì thấy B) | Trạng thái |
 |---|---|---|

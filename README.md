@@ -1,89 +1,92 @@
 # Đảo Đèn Lồng (Day 12 AI SDLC) — Nguyễn Thị Dũng, 2A202603508
 
-> Video demo: _(chưa có, sẽ thêm ở Phase 4)_
+> **Video demo:** _chưa quay: xem [docs/demo/SCRIPT.md](docs/demo/SCRIPT.md); sẽ đính kèm Release `v1.0.0` hoặc `docs/demo/demo.mp4`_
 > Đề bài gốc của lab: [docs/LAB-README.md](docs/LAB-README.md)
 
-Game 3D góc nhìn thứ ba bằng Three.js. Mây gom đom đóm, thắp lại 5 Đèn Lồng Lớn và né Bóng Mực. Tiến độ: **Phase 3** (Ticket-03 "Đèn cạn dầu", contract v1.2).
+Game 3D góc nhìn thứ ba (Three.js). Mây, người giữ đèn nhỏ tuổi, gom đom đóm để giữ cho các Đèn Lồng Lớn sáng tới bình minh, né Bóng Mực và Gió Lạc trên ba hòn đảo. Lõi mô phỏng tất định (`sim/`) dùng chung cho game, chế độ headless, benchmark và soak test.
 
-## Cài đặt và chạy (Node.js 20+)
+| Menu | Đêm 2: Đảo Cau | Đèn cạn dầu (Phase 3) |
+|---|---|---|
+| ![menu](evidence/phase-4/phase-4-ui-menu.png) | ![dem 2](evidence/phase-2/ui-n2.png) | ![fuel](evidence/phase-3/phase-3-ui-fuel.png) |
+
+## Yêu cầu hệ thống
+- **Node.js 20 trở lên** (đã chạy với v26.13.1) và `npm`. macOS hoặc Linux.
+- Trình duyệt hiện đại có WebGL2 (Chrome/Chromium, Firefox, Safari). **Benchmark cần Chrome hoặc Chromium.**
+- Bất kỳ GPU nào có WebGL2; đã đo trên Intel UHD (xem mục Benchmark).
+
+## Cài đặt và chạy (3 lệnh)
 ```bash
+git clone <repo> && cd <repo>
 npm install
-npm start            # mở http://localhost:8080
-bash scripts/verify.sh   # kiểm chứng headless
+npm start          # mở http://localhost:8080
 ```
-Chế độ headless: `node sim/cli.mjs --seed 1 --night 1 --ticks 600 --out out.jsonl [--scenario f] [--inputs f]`
+Nếu cổng 8080 bận: `node server.mjs 8081`.
 
-## Điều khiển
+## Điều khiển (đổi được trong Cài đặt → Đổi phím)
 | Phím | Việc |
 |---|---|
 | W A S D | Di chuyển (theo hướng camera) |
 | Space | Nhảy (chỉ khi chạm đất) |
-| Shift | Lướt (14 m/s trong 0.2 s, hồi chiêu 1.5 s) |
+| Shift trái | Lướt (14 m/s trong 0.2 s, hồi chiêu 1.5 s) |
 | E | Nạp đom đóm để thắp đèn tắt, hoặc châm dầu cho đèn đang sáng (trong 2 m) |
 | F | Tỏa Sáng: choáng và đẩy Bóng Mực trong 5 m, tốn 3 đom đóm, hồi chiêu 3 s |
-| ← → hoặc kéo chuột | Xoay camera (độ nhạy chỉnh trong Cài đặt) |
-| Esc hoặc P | Tạm dừng (Tiếp tục / Chơi lại Đêm / Cài đặt / Về menu) |
+| ← → hoặc kéo chuột | Xoay camera |
+| Esc | Tạm dừng (Tiếp tục / Chơi lại Đêm / Cài đặt / Về menu) |
 
-## Luật và điểm (số chuẩn Ticket-03)
-- 3 Đêm: Đảo Bến (240 s, 5 đèn), Đảo Cau (270 s, 6 đèn, cầu tre và bục nhảy), Đảo Chuông (300 s, 7 đèn, 3 tầng, dốc, gió mạnh). Ngọn Lửa hồi đầy đầu mỗi Đêm.
-- **Mục tiêu: giữ đảo sáng tới bình minh.** Thắng khi còn sống lúc hết giờ và số đèn đang sáng ≥ 60% tổng (3/5, 4/6, 5/7). Thắp đủ đèn không kết thúc Đêm. Thua: hết Ngọn Lửa, hoặc hết giờ mà đèn sáng chưa đủ.
-- **Đèn hao dầu:** vừa thắp có 100 dầu, hao 1/giây. Bấm E gần đèn đang sáng để châm dầu (+10 mỗi đom đóm). Hết dầu đèn tắt; thắp lại chỉ cần 5 đom đóm. Đèn dưới 30 dầu mất vùng an toàn, nhấp nháy, và Bóng Mực kéo tới hút 5 dầu/giây.
-- Đom đóm: mỗi lần thắp thành công tăng sức chứa 2 (10 → tối đa 20). Tự nhặt trong 1 m. Bùa Gió (đỏ viền vàng): 10 giây chạy 7.2 m/s và lướt không hồi chiêu.
-- Bóng Mực chạm: −1 Ngọn Lửa, rơi nửa số đom đóm mang, bất tử 1.5 s. Gió Lạc cướp tới 3 đom đóm nếu bạn mang ≥ 5. Rơi khỏi đảo: −1 Ngọn Lửa, mất hết đom đóm, hồi sinh sau 1 s.
-- Điểm: +5 mỗi đom đóm nạp/châm, +100 thắp lần đầu, +40 thắp lại, +5 mỗi Bóng Mực trúng Tỏa Sáng (+15 nếu nó đang hút dầu). Bình minh (khi thắng): mỗi đèn sáng +50 + phần nguyên của dầu, mỗi Ngọn Lửa +50. Tổng điểm game là tổng các Đêm đã thắng.
-- Cài đặt có "Bảng màu dễ phân biệt" (viền/mắt Bóng Mực xanh `#00B3FF`, cảnh báo trắng kèm ⚠; đèn tắt xẹp và có vết rách).
+**Luật:** giữ ≥ 60% số đèn sáng tới bình minh (3/5, 4/6, 5/7) và còn Ngọn Lửa. Đèn hao dầu 1/giây; châm dầu bằng đom đóm (+10 mỗi đom đóm); đèn tắt thắp lại bằng 5 đom đóm. Dưới 30 dầu đèn mất vùng an toàn và bị Bóng Mực hút dầu. Sức chứa tăng 2 mỗi lần thắp (tối đa 20). Điểm: +5/đom đóm nạp, +100 thắp lần đầu, +40 thắp lại, +5 mỗi Bóng Mực trúng Tỏa Sáng (+15 nếu nó đang hút dầu); bình minh: mỗi đèn sáng +50 + phần nguyên của dầu, mỗi Ngọn Lửa +50. Toàn bộ số chuẩn nằm trong [game.contract.json](game.contract.json). Chi tiết: [SPEC-PHASE2.md](SPEC-PHASE2.md), [SPEC-PHASE3.md](SPEC-PHASE3.md), [ADR-0003](docs/ADR-0003-den-nhien-lieu-va-luat-thang.md).
 
-Mọi giá trị nằm trong [game.contract.json](game.contract.json). Spec và giả định: [ASSUMPTIONS.md](ASSUMPTIONS.md) (P1), [SPEC-PHASE2.md](SPEC-PHASE2.md), [SPEC-PHASE3.md](SPEC-PHASE3.md). Quyết định thiết kế: [docs/ADR-0003-den-nhien-lieu-va-luat-thang.md](docs/ADR-0003-den-nhien-lieu-va-luat-thang.md). Thay đổi phá vỡ: [docs/CHANGELOG.md](docs/CHANGELOG.md).
+## Bảng xếp hạng
+Sau màn Bình Minh hoặc khi thua ở bất kỳ Đêm nào, nhập tên (3–12 ký tự `A-Za-z0-9_`, chưa hỗ trợ tiếng Việt có dấu) để lưu điểm. Top 10, lưu trong `data/leaderboard.json` (còn sau khi tắt và mở lại). Xem từ menu chính, hoặc xuất:
+```bash
+node server.mjs --export-leaderboard out.json   # {"entries":[...]} đúng thứ tự
+```
+
+## Trợ năng
+- **Đổi phím** cho mọi hành động (4 hướng, nhảy, lướt, tương tác, tỏa sáng, tạm dừng), báo trùng phím, nút "Khôi phục mặc định"; lưu lại.
+- **Phụ đề / chỉ báo hình ảnh:** Bóng Mực xuất hiện (kèm mũi tên đỏ ở mép màn hình), gió sắp thổi, 10 giây cuối, đèn sắp hết dầu.
+- **Giảm chuyển động:** tắt chớp màn hình và nhấp nháy. **Bảng màu dễ phân biệt** (mù màu). **Chữ lớn ×1.25**; cỡ chữ UI tối thiểu 18 px.
+
+## Cách chạy test
+```bash
+bash scripts/verify.sh     # 197 kiểm tra headless; log vào evidence/phase-4/verify.log
+```
+Kiểm tra gồm: định dạng và tick model, lướt/nhảy/Tỏa Sáng/Gió Lạc/Bùa Gió/gió/bục nhảy/tầng, nhiên liệu đèn và luật thắng, soak, bảng xếp hạng, cảnh benchmark, tất định, hiệu năng, và đầu vào hỏng (exit 2).
+
+## Headless (Test Contract v1.3)
+```bash
+node sim/cli.mjs --seed 1 --night 1 --ticks 600 --out out.jsonl [--scenario f.json] [--inputs f.json] [--snapshot-every 10]
+```
+60 tick/s, đầu ra JSONL (snapshot, event, end), tất định theo seed. `--night` nhận 1, 2, 3. Đầu vào/scenario hỏng thoát với mã 2.
+
+## Benchmark
+```bash
+node bench/run.mjs --seed 42 --duration 30 --out bench.json
+```
+Mở cửa sổ Chrome 1280×720 (không toàn màn hình), tắt vsync bằng cờ `--disable-gpu-vsync --disable-frame-rate-limit`, tải Đêm 1 đủ hiệu ứng với **200 Bóng Mực (wander) + 100 đom đóm**, L1–L3 sáng fuel 100; tắt sinh thêm, sát thương, nhặt, hao dầu, kết thúc Đêm. Camera bay vòng bán kính 30 m, Y = 15 m, 15 s/vòng; 3 s khởi động rồi đo đúng `--duration` giây. Không có màn hình thì chạy `--headless` (render phần mềm, chậm hơn nhiều).
+
+Kết quả của tôi ([bench.json](bench.json)): **325.7 FPS trung bình, p1 low 113.4 FPS, p95 5.8 ms, 9772 khung, load 840 ms** trên Intel Core i3-1115G4 + Intel UHD (Mesa), 15 GB RAM, Linux, Chrome 157, **cửa sổ thật**. Chỉ để tham khảo; máy chấm sẽ cho số khác.
+- `peak_mem_mb` = tổng RSS của mọi tiến trình Chrome (cộng cả bộ nhớ chia sẻ) nên **cao hơn bộ nhớ thật**.
+- `vsync_off` ghi theo cờ đã truyền cho Chrome; trang web không tự xác minh được vsync.
+
+## Soak test
+```bash
+node --expose-gc sim/soak.mjs --seed 7 --nights 10 --out soak.json
+```
+10 Đêm liên tiếp (Đêm 1→2→3 xoay vòng, Đêm i dùng seed 7+i, i tính từ 1), input ngẫu nhiên theo seed. Kết quả ([soak.json](soak.json)): 0 crash, `mem_start_mb` 98.4 → `mem_end_mb` 101.4 (×1.03; ngưỡng ×1.2). Lưu ý trung thực: bộ nhớ khởi động tăng 49 → ~98 MB trong vài Đêm đầu (JIT/heap) rồi đi ngang, nên `mem_start_mb` được đo **sau giai đoạn làm nóng** (chạy thử các Đêm seed riêng tới khi RSS ổn định, không tính vào kết quả) và `mem_first_load_mb` (49.2) ghi RSS trước khi làm nóng. Qua nhiều lần chạy tỉ lệ nằm trong khoảng 1.03–1.17, tức biên an toàn chỉ vừa phải. Trong thử nghiệm với input ngẫu nhiên Mây thua cả 10 Đêm (đúng kỳ vọng với người chơi ngẫu nhiên).
 
 ## Cấu trúc
-- `sim/` lõi mô phỏng thuần JS, dùng chung cho headless và game. `web/` giao diện Three.js. `server.mjs` server tĩnh.
-- `scenarios/` + `scripts/verify.mjs`: kịch bản và kiểm chứng. `evidence/phase-1/`: bằng chứng.
-- `AGENTS.md`: harness cho agent.
+`sim/` lõi mô phỏng, CLI headless, soak, cảnh bench · `web/` giao diện Three.js · `server.mjs` + `server/` server tĩnh và API bảng xếp hạng · `bench/` bộ chạy benchmark · `scenarios/` + `scripts/verify.mjs` kiểm chứng · `evidence/` bằng chứng · `docs/` ADR, retro, bằng chứng chi tiết · `AGENTS.md` harness cho agent.
+
+## Phát hành
+`bash scripts/make-release.sh` tạo `dist/dao-den-long-v1.0.0.zip` (chạy được chỉ với Node: `node server.mjs`) và có `Dockerfile` (chưa kiểm thử trong môi trường này). Xem [CHANGELOG.md](CHANGELOG.md), [CREDITS.md](CREDITS.md), [LICENSE](LICENSE).
 
 ## Sáng tạo của tôi
-Gợi ý nguy hiểm chỉ ở giao diện, không đổi số chuẩn hay đầu ra headless (lõi `sim/` không biết về chúng):
-- Mũi tên đỏ ở rìa màn hình chỉ tới Bóng Mực đang đuổi nằm ngoài tầm nhìn (trong 18 m); mắt Bóng Mực đỏ khi đang đuổi.
-- Viền đỏ và tiếng cảnh báo khi có Bóng Mực đang đuổi trong 10 m.
-- Vòng vàng bán kính 5 m quanh Mây khi Tỏa Sáng dùng được và Bóng Mực đã tới gần (cách dưới 9 m): vòng mờ khi chưa trúng, sáng rõ khi có Bóng Mực nằm trong tầm trúng của F (cùng công thức khoảng cách 3D với lõi).
+Gợi ý nguy hiểm chỉ ở giao diện, không đổi số chuẩn hay đầu ra headless (lõi `sim/` không biết về chúng): mũi tên đỏ ở rìa màn hình tới Bóng Mực đang đuổi ngoài tầm nhìn (≤ 18 m), mắt đỏ khi đang đuổi, viền đỏ và tiếng cảnh báo khi có Bóng Mực đang đuổi trong 10 m, vòng vàng bán kính 5 m quanh Mây khi Tỏa Sáng dùng được và sáng rõ khi có Bóng Mực trong tầm trúng của F (cùng công thức 3D với lõi). Các gợi ý này tắt trong cảnh benchmark. Cảnh kiểm chứng cố định: `/?start=1&demo=hint` ([ảnh](evidence/phase-2/ui-hint.png)).
 
-Bằng chứng lõi vẫn đúng: `bash scripts/verify.sh` (145/145). Gợi ý nguy hiểm được kiểm tra bằng cảnh cố định `http://localhost:8080/?start=1&demo=hint` (ảnh: [ui-hint.png](evidence/phase-2/ui-hint.png)): vòng sáng rõ khi Bóng Mực trong tầm F, viền đỏ, mũi tên đỏ chỉ Bóng Mực phía sau, mắt đỏ. Chưa thử khi chơi liên tục.
+## Trung thực về những gì chưa kiểm chứng
+- **Giao diện chưa có test tự động.** Menu, tạm dừng, đổi phím khi bấm thật, chuyển Đêm, màn thắng/thua, lưu tên vào bảng xếp hạng từ giao diện, và âm thanh chưa được thao tác/nghe thử (chỉ có ảnh các màn hình và API bảng xếp hạng được kiểm tra bằng test + `curl`).
+- **Video demo chưa có** (không tự quay được trong môi trường làm việc này).
+- Chưa đo trên máy chấm của giảng viên; chưa kiểm thử Docker.
+- Số token/chi phí AI: xem [docs/RETRO.md](docs/RETRO.md) (cần tác giả bổ sung).
 
-## Bằng chứng Phase 3
-Chạy lại: `bash scripts/verify.sh` (log: [evidence/phase-3/verify.log](evidence/phase-3/verify.log)). 177 kiểm tra headless, 0 thất bại.
-
-| Yêu cầu Ticket-03 | Cách kiểm chứng | Kết quả |
-|---|---|---|
-| Nhiên liệu: hao, châm dầu, hết dầu, thắp lại, `fuel` nguyên 1/60 | scenario `fuel-decay`, `refuel*`, `lantern-out`, `relight`, `first-light-needs-10` | Đạt |
-| Bóng Mực hút dầu: `drain`, mất vùng an toàn dưới 30 (đúng 30 còn), chọn mục tiêu, cộng dồn, chuyển trạng thái, `fuel_drain` | scenario `drain*`, `zone-*`, `wander-target-*` | Đạt |
-| Luật thắng mới: dawn_survived, ngưỡng 3/5 4/6 5/7, không thắng sớm, hết lửa ở tick cuối | `win-dawn`, `threshold-*`, `no-early-win`, `lose-last-tick` | Đạt |
-| Sức chứa 10 + 2 × lần thắp, tối đa 20; điểm mới | `capacity-*`, `deposit-full`, `win-dawn` | Đạt |
-| Contract v1.2: tuning, snapshot, scenario, event | cùng bộ kiểm tra | Đạt |
-| Hồi quy Phase 1-2 | test cũ giữ nguyên; test bị luật mới làm sai đã sửa kèm lý do, nhãn `[P3]` | Đạt (xem [CHANGELOG](docs/CHANGELOG.md)) |
-| Giao diện: thanh dầu, đèn tắt xẹp/rách, HUD mang/sức chứa, chế độ mù màu | ảnh cảnh cố định `?start=1&demo=fuel`: [thường](evidence/phase-3/phase-3-ui-fuel.png), [mù màu](evidence/phase-3/phase-3-ui-fuelcb.png) | Có hình; **chưa chơi thật**, đèn tắt/nhấp nháy chưa thấy trong ảnh |
-| Chơi trọn vẹn, âm thanh, ≥ 30 FPS | — | **Chưa kiểm chứng** (như Phase 2) |
-
-## Bằng chứng Phase 2 (tag `phase-2`; đã bị Phase 3 thay một số luật)
-Chạy lại: `bash scripts/verify.sh` (log: [evidence/phase-2/verify.log](evidence/phase-2/verify.log), scenario trong `scenarios/`).
-
-| Yêu cầu | Cách kiểm chứng | Kết quả |
-|---|---|---|
-| Số chuẩn, 3 bản đồ, thứ tự tick, lướt, Tỏa Sáng, Gió Lạc, Bùa Gió, gió, bục nhảy, tầng/dốc/tháp, rơi, tạm dừng, lịch sinh | 145 kiểm tra headless (≥1 scenario cho mỗi tính năng mới) | Đạt, 0 thất bại |
-| Hồi quy Phase 1 với số chuẩn | cùng bộ kiểm tra (nhặt, nạp, thắng/thua, pulse, hit) | Đạt |
-| Tất định (3 Đêm), exit 2 khi đầu vào hỏng | byte-identical theo seed; 9 file đầu vào hỏng | Đạt |
-| Một Đêm đầy đủ ≤ 30 s | 21.600 tick chạy hết khoảng 0.1 s | Đạt |
-| Giao diện: menu, 3 bản đồ 3D, HUD, bảng màu | ảnh chụp: [menu](evidence/phase-2/ui-menu.png), [Đêm 1](evidence/phase-2/ui-n1.png), [Đêm 2](evidence/phase-2/ui-n2.png), [Đêm 3](evidence/phase-2/ui-n3.png) (chỉ khung hình đầu) | Có hình, **chưa kiểm tra bằng thao tác** |
-| Chơi trọn vẹn trong trình duyệt: chuyển Đêm, tạm dừng, kết quả/Bình Minh, âm thanh, cài đặt lưu | — | **Chưa kiểm chứng**: chưa có test tự động cho giao diện; âm thanh tổng hợp bằng WebAudio chưa nghe thử |
-| ≥ 30 FPS trung bình ở 1280×720 | `?debug` hiển thị FPS | **Chưa đo** trên GPU thật (chỉ chạy được bản render phần mềm) |
-| Gió: báo trước bằng lá bay (có), bằng âm thanh (chưa) | — | Một phần |
-
-Việc chưa xong ở Phase 2: xem bảng trong [SPEC-PHASE2.md](SPEC-PHASE2.md).
-
-## Bằng chứng Phase 1 (tag `phase-1`)
-Xem [evidence/phase-1/verify.log](evidence/phase-1/verify.log) và README ở tag `phase-1`.
-
-## Nhật ký dùng AI
-Dùng Claude Code (agent) để lập kế hoạch, viết lõi, CLI, scenario và giao diện. Tôi duyệt kế hoạch trước, agent tự siết lại hai kiểm tra quá lỏng sau lần chạy đầu. Chưa ghi số token cụ thể: _cần bổ sung_.
-
-Phase 3: dán Ticket-03 (thay đổi luật cốt lõi), ghi ADR và changelog, sửa lõi, cập nhật test cũ kèm lý do, rồi giao diện. Cả 177 kiểm tra đạt ngay lần chạy đầu sau khi tôi viết test mới, nên tôi cần soát lại xem test có đủ chặt không (đã kiểm tra các giá trị cụ thể như fuel 30.0 chính xác). Token: _cần bổ sung_.
-
-Phase 2: dán Ticket-02 vào Claude Code, làm theo thứ tự: spec/giả định, contract v1.1, viết lại lõi, 145 kiểm tra headless, rồi giao diện. Agent tự phát hiện hai kiểm tra vô hiệu (`|| true`) và một lỗi recoil thiếu 1 tick nhờ chạy kiểm chứng; đã sửa. Token: _cần bổ sung_.
+Bằng chứng theo từng phase: [docs/EVIDENCE.md](docs/EVIDENCE.md).

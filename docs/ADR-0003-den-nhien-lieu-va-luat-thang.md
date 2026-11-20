@@ -16,7 +16,7 @@ Ticket-02 có mô hình đèn nhị phân (tắt/sáng, sáng thì mãi sáng) v
 6. **Sức chứa** `min(20, 10 + 2 × successful_lights)`, đếm trong lõi, đặt lại mỗi Đêm vì mỗi Đêm tạo lại mô phỏng.
 
 ## Hệ quả
-- Test cũ phụ thuộc thắng sớm, công thức điểm, thời gian Đêm bị cập nhật (xem `docs/CHANGELOG.md`).
+- Test cũ phụ thuộc thắng sớm, công thức điểm, thời gian Đêm bị cập nhật (xem `CHANGELOG.md`).
 - Đèn vừa thắp bị hao dầu ngay trong tick đầu, nên `fuel` đầy đúng 100 chỉ xuất hiện ở snapshot ngay sau khi thắp/châm.
 - Một Đêm headless vẫn rất nhanh (< 1 giây).
 

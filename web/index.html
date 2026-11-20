@@ -5,42 +5,56 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Đảo Đèn Lồng</title>
 <style>
-  :root{--sky:#0E1430;--fog:#1B2350;--gold:#F2C14E;--danger:#FF5A5F;--text:#F5F1E6;--lamp:#FFB347}
-  html,body{margin:0;height:100%;overflow:hidden;background:var(--sky);font-family:system-ui,"Segoe UI",sans-serif;color:var(--text);user-select:none}
+  /* Co chu goc 18 px (toi thieu theo Ticket-04); "Chu lon" nhan 1.25 qua --scale. Moi co chu dung rem. */
+  :root{--sky:#0E1430;--fog:#1B2350;--gold:#F2C14E;--danger:#FF5A5F;--text:#F5F1E6;--lamp:#FFB347;--scale:1}
+  html{font-size:calc(18px * var(--scale))}
+  body{margin:0;height:100vh;overflow:hidden;background:var(--sky);font-family:system-ui,"Segoe UI",sans-serif;color:var(--text);user-select:none;font-size:1rem}
   canvas{display:block}
-  .hud{position:fixed;pointer-events:none;font-size:18px;text-shadow:0 1px 4px #000a}
-  #flames{top:12px;left:16px;font-size:24px;letter-spacing:2px}
-  #clock{top:10px;left:50%;transform:translateX(-50%);font-size:30px;font-weight:700;font-variant-numeric:tabular-nums}
+  .hud{position:fixed;pointer-events:none;text-shadow:0 1px 4px #000a}
+  #flames{top:.6rem;left:.9rem;font-size:1.35rem;letter-spacing:2px}
+  #clock{top:.5rem;left:50%;transform:translateX(-50%);font-size:1.7rem;font-weight:700;font-variant-numeric:tabular-nums}
   #clock.low{color:var(--danger);animation:blink .5s steps(2) infinite}
+  body.calm #clock.low{animation:none}
   @keyframes blink{50%{opacity:.25}}
-  #right{top:12px;right:16px;text-align:right;line-height:1.4}
+  #right{top:.6rem;right:.9rem;text-align:right;line-height:1.4}
   #right b{color:var(--gold)}
-  #cells{bottom:46px;left:50%;transform:translateX(-50%);display:flex;gap:4px}
-  #cells i{width:20px;height:20px;border-radius:50%;border:2px solid #FFE58A66;background:#0006}
+  #cells{bottom:3.4rem;left:50%;transform:translateX(-50%);display:flex;gap:4px;align-items:center}
+  #cells i{width:1.1rem;height:1.1rem;border-radius:50%;border:2px solid #FFE58A66;background:#0006}
   #cells i.on{background:radial-gradient(#FFF6C2,#FFE58A);box-shadow:0 0 8px #FFE58A}
-  #prompt{bottom:84px;left:0;right:0;text-align:center;color:var(--gold);font-weight:600;display:none}
-  #cds{bottom:40px;right:20px;display:flex;gap:12px}
-  .cd{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.15;font-size:12px;font-weight:700;border:2px solid var(--gold);background:#0008;position:relative;overflow:hidden}
+  #prompt{bottom:5.6rem;left:0;right:0;text-align:center;color:var(--gold);font-weight:600;display:none}
+  #caption{bottom:7.8rem;left:0;right:0;text-align:center;font-size:1.1rem;font-weight:600;display:none}
+  #caption span{background:#0E1430dd;padding:.25rem .8rem;border-radius:.5rem;border:1px solid #F2C14E88}
+  #cds{bottom:2rem;right:1rem;display:flex;gap:.7rem}
+  .cd{width:5rem;height:5rem;border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.1;font-size:1rem;font-weight:700;border:2px solid var(--gold);background:#0008;position:relative;overflow:hidden}
   .cd .fill{position:absolute;left:0;right:0;bottom:0;background:#F2C14E55}
   .cd span{position:relative}
   .cd.off{border-color:#888;color:#aaa}
-  #arrow{position:fixed;width:0;height:0;pointer-events:none;display:none;border-left:14px solid transparent;border-right:14px solid transparent;border-bottom:28px solid var(--lamp);filter:drop-shadow(0 0 6px #FFB347)}
-  #charmbar{top:56px;left:16px;color:var(--danger);display:none}
-  #toast{top:96px;left:0;right:0;text-align:center;font-size:20px;opacity:0;transition:opacity .3s}
-  #windwarn{top:100px;left:0;right:0;text-align:center;color:#8FA3B8;display:none}
-  #vignette{position:fixed;inset:0;pointer-events:none;opacity:0;box-shadow:inset 0 0 140px 30px var(--danger)}
+  #arrow,#spawnarrow{position:fixed;width:0;height:0;pointer-events:none;display:none;border-left:14px solid transparent;border-right:14px solid transparent;border-bottom:28px solid var(--lamp);filter:drop-shadow(0 0 6px #FFB347)}
+  #spawnarrow{border-bottom-color:var(--danger);filter:drop-shadow(0 0 6px var(--danger))}
   .tarrow{position:fixed;width:0;height:0;pointer-events:none;display:none;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:20px solid var(--danger);filter:drop-shadow(0 0 5px var(--danger))}
-  #debug{bottom:6px;left:8px;font-size:12px;opacity:.6}
-  #help{position:fixed;bottom:6px;left:0;right:0;text-align:center;font-size:12px;opacity:.55;pointer-events:none}
-  .screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:#0E1430dd;text-align:center;gap:10px;padding:20px}
-  .screen h1{font-size:46px;margin:0;color:var(--gold)}
-  .screen h2{margin:0;font-size:28px}
-  .screen p{max-width:560px;line-height:1.5;margin:4px 0}
-  .screen button{font-size:19px;padding:10px 26px;border:0;border-radius:8px;background:var(--lamp);color:#2a1a05;cursor:pointer;min-width:230px}
+  #vignette{position:fixed;inset:0;pointer-events:none;opacity:0;box-shadow:inset 0 0 140px 30px var(--danger)}
+  #charmbar{top:3.4rem;left:.9rem;color:var(--danger);display:none}
+  #toast{top:6rem;left:0;right:0;text-align:center;font-size:1.1rem;opacity:0;transition:opacity .3s}
+  #windwarn{top:7rem;left:0;right:0;text-align:center;color:#8FA3B8;display:none}
+  #debug{bottom:.3rem;left:.5rem;font-size:1rem;opacity:.6}
+  #help{position:fixed;bottom:.3rem;left:0;right:0;text-align:center;font-size:1rem;opacity:.6;pointer-events:none}
+  .screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:#0E1430ee;text-align:center;gap:.55rem;padding:1.1rem;overflow-y:auto}
+  .screen h1{font-size:2.6rem;margin:0;color:var(--gold)}
+  .screen h2{margin:0;font-size:1.6rem}
+  .screen p{max-width:34rem;line-height:1.5;margin:.2rem 0}
+  .screen button{font-size:1.05rem;padding:.55rem 1.4rem;border:0;border-radius:.5rem;background:var(--lamp);color:#2a1a05;cursor:pointer;min-width:12.5rem}
   .screen button.sec{background:#2a3566;color:var(--text)}
-  .screen button:hover{filter:brightness(1.12)}
-  .row{display:flex;gap:10px;align-items:center}
-  input[type=range]{width:220px}
+  .screen button:hover,.screen button:focus-visible{filter:brightness(1.15);outline:2px solid var(--gold)}
+  .screen input[type=text]{font-size:1.05rem;padding:.4rem .6rem;border-radius:.4rem;border:2px solid var(--gold);background:#0b1024;color:var(--text);text-align:center}
+  .row{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;justify-content:center}
+  .err{color:var(--danger);min-height:1.4rem}
+  table{border-collapse:collapse}
+  td,th{padding:.2rem .9rem;text-align:left}
+  th{color:var(--gold)}
+  tr.me td{background:#F2C14E33}
+  input[type=range]{width:13rem}
+  .keyrow{display:grid;grid-template-columns:9rem 9rem;gap:.35rem .7rem;align-items:center}
+  .keyrow button{min-width:0;padding:.3rem .6rem}
 </style>
 </head>
 <body>
@@ -49,16 +63,18 @@
 <div class="hud" id="right"></div>
 <div class="hud" id="cells"></div>
 <div class="hud" id="prompt"></div>
-<div class="hud" id="cds"><div class="cd" id="cdDash"><div class="fill"></div><span>Shift<br>Lướt</span></div><div class="cd" id="cdPulse"><div class="fill"></div><span>F<br>Tỏa Sáng</span></div></div>
+<div class="hud" id="caption"><span></span></div>
+<div class="hud" id="cds"><div class="cd" id="cdDash"><div class="fill"></div><span>Lướt</span></div><div class="cd" id="cdPulse"><div class="fill"></div><span>Tỏa<br>Sáng</span></div></div>
 <div class="hud" id="charmbar"></div>
 <div class="hud" id="toast"></div>
 <div class="hud" id="windwarn">🍃 Gió mạnh sắp tới…</div>
 <div class="hud" id="debug"></div>
 <div id="arrow"></div>
+<div id="spawnarrow"></div>
 <div id="vignette"></div>
-<div class="hud" id="warnicon" style="top:60px;left:0;right:0;text-align:center;font-size:34px;display:none;color:var(--danger)">⚠</div>
+<div class="hud" id="warnicon" style="top:3.6rem;left:0;right:0;text-align:center;font-size:2rem;display:none;color:var(--danger)">⚠</div>
 <div id="threats"></div>
-<div id="help">WASD di chuyển · Space nhảy · Shift lướt · E nạp ánh sáng · F Tỏa Sáng · ←/→ hoặc kéo chuột xoay camera · Esc/P tạm dừng</div>
+<div id="help"></div>
 <div class="screen" id="screen"></div>
 <script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js"}}</script>
 <script type="module" src="/web/main.mjs"></script>
