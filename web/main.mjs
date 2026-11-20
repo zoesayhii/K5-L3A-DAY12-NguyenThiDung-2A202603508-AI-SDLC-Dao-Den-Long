@@ -604,7 +604,11 @@ function updateHud() {
     el.style.transform = `rotate(${Math.atan2(x, y)}rad)`;
   });
   const pulseReady = p.pulseCd === 0 && p.carried >= T.pulse_cost;
-  pulsePreview.visible = pulseReady && nearestD < T.pulse_radius + 4;
+  // trung F neu khoang cach 3D toi tam (chan Mây + 0.8 m) <= pulse_radius: dung dung cong thuc cua loi
+  const inRange = s.shades.some((sh) => Math.hypot(p.pos[0] - sh.pos[0], p.pos[1] + 0.8 - sh.pos[1], p.pos[2] - sh.pos[2]) <= T.pulse_radius);
+  pulsePreview.visible = s.state === 'playing' && pulseReady && (inRange || nearestD < T.pulse_radius + 4);
+  pulsePreview.material.opacity = inRange ? 0.85 : 0.25;
+  pulsePreview.material.color.setHex(inRange ? C.lampCore : C.gold);
   pulsePreview.position.set(p.pos[0], p.pos[1] + 0.08, p.pos[2]);
   // dem nguoc 10 giay cuoi
   if (secs <= 10 && secs !== lastTimeInt && s.state === 'playing') SFX.tick();

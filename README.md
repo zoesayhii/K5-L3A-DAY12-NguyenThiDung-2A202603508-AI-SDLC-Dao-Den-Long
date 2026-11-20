@@ -41,7 +41,7 @@ Mọi giá trị nằm trong [game.contract.json](game.contract.json). Giả đ�
 Gợi ý nguy hiểm chỉ ở giao diện, không đổi số chuẩn hay đầu ra headless (lõi `sim/` không biết về chúng):
 - Mũi tên đỏ ở rìa màn hình chỉ tới Bóng Mực đang đuổi nằm ngoài tầm nhìn (trong 18 m); mắt Bóng Mực đỏ khi đang đuổi.
 - Viền đỏ và tiếng cảnh báo khi có Bóng Mực đang đuổi trong 10 m.
-- Vòng vàng mờ bán kính 5 m quanh Mây khi Tỏa Sáng dùng được và Bóng Mực đã tới gần.
+- Vòng vàng bán kính 5 m quanh Mây khi Tỏa Sáng dùng được và Bóng Mực đã tới gần (cách dưới 9 m): vòng mờ khi chưa trúng, sáng rõ khi có Bóng Mực nằm trong tầm trúng của F (cùng công thức khoảng cách 3D với lõi).
 
 Bằng chứng lõi vẫn đúng: `bash scripts/verify.sh` (145/145). Giao diện của các gợi ý mới chỉ kiểm tra là trang tải được, chưa thấy trực tiếp mũi tên và viền đỏ khi có Bóng Mực.
 
