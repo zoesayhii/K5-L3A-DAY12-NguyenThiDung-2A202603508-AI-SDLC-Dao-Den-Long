@@ -3,7 +3,7 @@
 > Video demo: _(chưa có, sẽ thêm ở Phase 4)_
 > Đề bài gốc của lab: [docs/LAB-README.md](docs/LAB-README.md)
 
-Game 3D góc nhìn thứ ba bằng Three.js. Mây gom đom đóm, thắp lại 5 Đèn Lồng Lớn và né Bóng Mực. Tiến độ: **Phase 1**.
+Game 3D góc nhìn thứ ba bằng Three.js. Mây gom đom đóm, thắp lại 5 Đèn Lồng Lớn và né Bóng Mực. Tiến độ: **Phase 2** (Ticket-02, contract v1.1: 3 Đêm).
 
 ## Cài đặt và chạy (Node.js 20+)
 ```bash
@@ -17,19 +17,20 @@ Chế độ headless: `node sim/cli.mjs --seed 1 --night 1 --ticks 600 --out out
 | Phím | Việc |
 |---|---|
 | W A S D | Di chuyển (theo hướng camera) |
-| Space | Nhảy |
-| E | Nạp đom đóm vào đèn gần nhất (trong 2.5 m) |
-| F | Xung ánh sáng: choáng và đẩy Bóng Mực, tốn 1 đom đóm |
-| ← → hoặc kéo chuột | Xoay camera |
-| R | Chơi lại |
+| Space | Nhảy (chỉ khi chạm đất) |
+| Shift | Lướt (14 m/s trong 0.2 s, hồi chiêu 1.5 s) |
+| E | Nạp đom đóm vào đèn gần nhất (trong 2 m) |
+| F | Tỏa Sáng: choáng và đẩy Bóng Mực trong 5 m, tốn 3 đom đóm, hồi chiêu 3 s |
+| ← → hoặc kéo chuột | Xoay camera (độ nhạy chỉnh trong Cài đặt) |
+| Esc hoặc P | Tạm dừng (Tiếp tục / Chơi lại Đêm / Cài đặt / Về menu) |
 
-## Luật và điểm
-- Đi gần đom đóm là tự nhặt (mang tối đa 5). Mỗi đèn cần 3 đom đóm để sáng.
-- Thắng: cả 5 đèn sáng. Thua: hết 3 ngọn lửa hoặc hết 180 giây.
-- Bóng Mực chạm vào Mây: mất 1 ngọn lửa, rơi nửa số đom đóm đang mang, bất tử 1.5 giây. Vùng quanh đèn đã sáng (4 m) Bóng Mực không vào được.
-- Điểm: +1 mỗi đom đóm, +50 mỗi đèn sáng, +5 mỗi Bóng Mực bị choáng. Khi thắng cộng thêm 1 điểm mỗi giây còn lại và 20 điểm mỗi ngọn lửa còn lại.
+## Luật và điểm (số chuẩn Ticket-02)
+- 3 Đêm: Đảo Bến (300 s, 5 đèn), Đảo Cau (330 s, 6 đèn, cầu tre và bục nhảy), Đảo Chuông (360 s, 7 đèn, 3 tầng, dốc, gió mạnh). Ngọn Lửa hồi đầy đầu mỗi Đêm.
+- Đom đóm: mang tối đa 10, mỗi đèn cần 10. Tự nhặt trong 1 m. Bùa Gió (đỏ viền vàng): 10 giây chạy 7.2 m/s và lướt không hồi chiêu.
+- Bóng Mực chạm: −1 Ngọn Lửa, rơi nửa số đom đóm mang, bất tử 1.5 s. Gió Lạc cướp tới 3 đom đóm nếu bạn mang ≥ 5. Rơi khỏi đảo: −1 Ngọn Lửa, mất hết đom đóm, hồi sinh sau 1 s.
+- Điểm: +10 mỗi đom đóm nạp, +100 mỗi đèn, +5 mỗi Bóng Mực trúng Tỏa Sáng; khi thắng + 2 × giây còn lại + 50 × Ngọn Lửa còn lại. Tổng điểm game là tổng các Đêm đã thắng. Thắng Đêm 3 thì tới màn Bình Minh.
 
-Mọi giá trị nằm trong [game.contract.json](game.contract.json). Giả định: [ASSUMPTIONS.md](ASSUMPTIONS.md).
+Mọi giá trị nằm trong [game.contract.json](game.contract.json). Giả định: [ASSUMPTIONS.md](ASSUMPTIONS.md) (Phase 1), [SPEC-PHASE2.md](SPEC-PHASE2.md) (Phase 2).
 
 ## Cấu trúc
 - `sim/` lõi mô phỏng thuần JS, dùng chung cho headless và game. `web/` giao diện Three.js. `server.mjs` server tĩnh.
@@ -39,15 +40,26 @@ Mọi giá trị nằm trong [game.contract.json](game.contract.json). Giả đ�
 ## Sáng tạo của tôi
 Chưa có ở Phase 1 (ưu tiên đúng yêu cầu trước).
 
-## Bằng chứng Phase 1
-| Yêu cầu | Cách kiểm chứng | Bằng chứng | Kết quả |
-|---|---|---|---|
-| Headless đúng Test Contract (tick, event, end, exit 2, tất định) | 38 kiểm tra tự động trên scenario | [verify.log](evidence/phase-1/verify.log) | Đạt |
-| Nhặt, nạp, thắp đèn, pulse, bị trúng, thắng/thua | scenario trong `scenarios/` | như trên | Đạt |
-| Giao diện 3D khởi động, HUD, Mây, đèn, đom đóm, Bóng Mực | ảnh chụp Chrome headless | [game-start.png](evidence/phase-1/game-start.png) | Đạt (chỉ ảnh lúc bắt đầu) |
-| Chơi trọn ván trong trình duyệt (thắng/thua, chơi lại) | — | chưa có | **Chưa kiểm chứng**: chưa tự chơi thử. Luật dùng chung lõi đã kiểm chứng |
-| Nhảy, camera xoay | — | chưa có | **Chưa kiểm chứng** bằng test |
-| Giá trị `tuning` mặc định / vị trí `score` | hỏi trợ giảng | chưa có | Chưa xác nhận |
+## Bằng chứng Phase 2
+Chạy lại: `bash scripts/verify.sh` (log: [evidence/phase-2/verify.log](evidence/phase-2/verify.log), scenario trong `scenarios/`).
 
-## Nhật ký dùng AI (Phase 1)
+| Yêu cầu | Cách kiểm chứng | Kết quả |
+|---|---|---|
+| Số chuẩn, 3 bản đồ, thứ tự tick, lướt, Tỏa Sáng, Gió Lạc, Bùa Gió, gió, bục nhảy, tầng/dốc/tháp, rơi, tạm dừng, lịch sinh | 145 kiểm tra headless (≥1 scenario cho mỗi tính năng mới) | Đạt, 0 thất bại |
+| Hồi quy Phase 1 với số chuẩn | cùng bộ kiểm tra (nhặt, nạp, thắng/thua, pulse, hit) | Đạt |
+| Tất định (3 Đêm), exit 2 khi đầu vào hỏng | byte-identical theo seed; 9 file đầu vào hỏng | Đạt |
+| Một Đêm đầy đủ ≤ 30 s | 21.600 tick chạy hết khoảng 0.1 s | Đạt |
+| Giao diện: menu, 3 bản đồ 3D, HUD, bảng màu | ảnh chụp: [menu](evidence/phase-2/ui-menu.png), [Đêm 1](evidence/phase-2/ui-n1.png), [Đêm 2](evidence/phase-2/ui-n2.png), [Đêm 3](evidence/phase-2/ui-n3.png) (chỉ khung hình đầu) | Có hình, **chưa kiểm tra bằng thao tác** |
+| Chơi trọn vẹn trong trình duyệt: chuyển Đêm, tạm dừng, kết quả/Bình Minh, âm thanh, cài đặt lưu | — | **Chưa kiểm chứng**: chưa có test tự động cho giao diện; âm thanh tổng hợp bằng WebAudio chưa nghe thử |
+| ≥ 30 FPS trung bình ở 1280×720 | `?debug` hiển thị FPS | **Chưa đo** trên GPU thật (chỉ chạy được bản render phần mềm) |
+| Gió: báo trước bằng lá bay (có), bằng âm thanh (chưa) | — | Một phần |
+
+Việc chưa xong ở Phase 2: xem bảng trong [SPEC-PHASE2.md](SPEC-PHASE2.md).
+
+## Bằng chứng Phase 1 (tag `phase-1`)
+Xem [evidence/phase-1/verify.log](evidence/phase-1/verify.log) và README ở tag `phase-1`.
+
+## Nhật ký dùng AI
 Dùng Claude Code (agent) để lập kế hoạch, viết lõi, CLI, scenario và giao diện. Tôi duyệt kế hoạch trước, agent tự siết lại hai kiểm tra quá lỏng sau lần chạy đầu. Chưa ghi số token cụ thể: _cần bổ sung_.
+
+Phase 2: dán Ticket-02 vào Claude Code, làm theo thứ tự: spec/giả định, contract v1.1, viết lại lõi, 145 kiểm tra headless, rồi giao diện. Agent tự phát hiện hai kiểm tra vô hiệu (`|| true`) và một lỗi recoil thiếu 1 tick nhờ chạy kiểm chứng; đã sửa. Token: _cần bổ sung_.
