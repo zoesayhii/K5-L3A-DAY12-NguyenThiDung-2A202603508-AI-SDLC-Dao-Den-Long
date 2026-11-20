@@ -176,7 +176,7 @@ function syncMeshes(now) {
     motesGroup.add(m);
   }
   while (motesGroup.children.length > s.motes.length) motesGroup.remove(motesGroup.children.at(-1));
-  s.motes.forEach((m, i) => motesGroup.children[i].position.set(m[0], 0.7 + Math.sin(now / 300 + i) * 0.2, m[2]));
+  s.motes.forEach((m, i) => motesGroup.children[i].position.set(m.pos[0], m.pos[1] + 0.7 + Math.sin(now / 300 + i) * 0.2, m.pos[2]));
 
   const live = new Set();
   for (const sh of s.shades) {

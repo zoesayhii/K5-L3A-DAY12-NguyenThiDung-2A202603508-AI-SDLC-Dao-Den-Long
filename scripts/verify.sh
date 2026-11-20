@@ -3,5 +3,5 @@
 set -o pipefail
 cd "$(dirname "$0")/.."
 [ -s "$HOME/.nvm/nvm.sh" ] && . "$HOME/.nvm/nvm.sh" >/dev/null
-mkdir -p evidence/phase-1
-node scripts/verify.mjs | tee evidence/phase-1/verify.log
+mkdir -p evidence/phase-2
+node scripts/verify.mjs | tee evidence/phase-2/verify.log

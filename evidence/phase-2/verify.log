@@ -1,0 +1,147 @@
+PASS  exit 0
+PASS  dong cuoi la end (ticks=100)
+PASS  snapshot moi 10 tick tu 0
+PASS  snapshot 0: Mây o (0,0,0), grounded, dem 1
+PASS  contract v1.1 + tuning chuan
+PASS  time_left_s = 300 - sim_tick/60
+PASS  snapshot v1.1 co night, wind, motes, drifters, charms
+PASS  player co vel, grounded, invuln, dash_cd_s, pulse_cd_s, charm_s
+PASS  event night_start o tick 1
+PASS  --ticks 0: snapshot 0 + end
+PASS  dem 1: 5 den, time_left 300s
+PASS  dem 2: 6 den, time_left 330s
+PASS  dem 3: 7 den, time_left 360s
+PASS  dem 1: toa do den chuan
+PASS  dem 3: den L1 o (0,6,6), L2 o (18,3,10)
+PASS  tang toc: vx=3 sau 3 tick, =6 sau 6 tick
+PASS  dung trong <= 0.1 s (6 tick)
+PASS  dung han sau 6 tick tu luc nha phim
+PASS  cheo duoc chuan hoa: |v| = 6
+PASS  nhay: vy 7, trong luc 20 => dinh ~1.225 m, nhay giua khong khong lap lai
+PASS  tiep dat sau ~0.7 s
+PASS  dieu khien tren khong day du
+PASS  luot: event dash tick 1 va 91 (hoi chieu 1.5 s tu luc bat dau)
+PASS  luot dung huong dang quay (+Z): 14 m/s trong 12 tick
+PASS  dash_cd_s = 1.5 luc bat dau
+PASS  luot theo huong dang di chuyen (-X)
+PASS  luot tren khong giu nguyen do cao
+PASS  khong bat tu khi luot: van bi trung o tick dau cua cu luot
+PASS  nhat: XZ 0.9 -> nhat, event tick 1 carried 1
+PASS  nhat: XZ 1.1 -> khong
+PASS  nhat: chenh cao 1.4 -> nhat
+PASS  nhat: chenh cao 1.6 -> khong
+PASS  day 10: khong nhat them
+PASS  mang 9: chi nhat them 1
+PASS  nhat khong cong diem (diem chi tinh khi nap)
+PASS  luc dau 20 dom dom tai 20 diem khac nhau
+PASS  sinh them 1 tai tick 240, 480; khong som hon
+PASS  tran 30: khong sinh them
+PASS  dom dom roi ton tai 480 tick (ttl_s 8 -> bien mat tai tick 480)
+PASS  nap du 10: deposit amount 10, lantern_lit L1, tick 1
+PASS  diem: 10/dom dom nap + 100/den = 200
+PASS  nap nhieu lan, den nho tien do (4 roi +1 = 5)
+PASS  interact ngoai 2.0 m: khong nap; trong 2.0: nap
+PASS  cach 2.1 m: khong nap
+PASS  hai den cung khoang cach: chon id nho hon (L1)
+PASS  chon den gan nhat (L3)
+PASS  chi xet den chua sang (bo qua den da sang gan hon)
+PASS  thang all_lit tai tick 1, dung o game over
+PASS  diem thang = 10*nap + 100*den + 2*floor(giay con) + 50*ngon lua
+PASS  thang dung tick het gio (khong thanh dawn)
+PASS  thua dawn tai tick 60, time_left_s 0
+PASS  thua no_flames; player_hit flames 0 truoc game_over
+PASS  toa sang: stunned_ids [A]; hoi chieu 3 s (tick 1 va 181)
+PASS  ton 3 dom dom moi lan, +5 diem moi lan trung
+PASS  choang 120 tick (state_ticks_left 120 tai tick 1)
+PASS  day lui tong 4 m trong 15 tick (3 -> 7), dung sau do
+PASS  het choang sau 120 tick -> chase
+PASS  pulse_cd_s = 3.0 luc kich hoat
+PASS  khong du 3 dom dom: khong kich hoat
+PASS  khoang cach 3D toi tam (chan + 0.8): 4.9 trung, 5.0 khong (3D 5.009)
+PASS  pulse lam moi choang + diem (ke ca con dang choang)
+PASS  trung vi tri: day theo +X (4 m)
+PASS  Bong Muc choang khong gay sat thuong
+PASS  player_hit by shade, flames 2, dropped floor(5/2)=2, 1 lan trong 89 tick bat tu
+PASS  bat tu 90 tick (invuln 1.5 s)
+PASS  2 dom dom roi tren vanh 1.5-2.5 m quanh Mây, ttl 8 s
+PASS  mang con 3 (5 - 2)
+PASS  Bong Muc lui 2 m trong 60 tick (recoil)
+PASS  toi da 1 lan mat ngon lua moi tick
+PASS  Mây bat tu: bong cham khong lam gi (bong van chase)
+PASS  chenh cao > 1.5: khong cham
+PASS  ban kinh cham 1.0 (XZ): 1.06 -> 0.993 trung, 1.2 -> 1.133 khong
+PASS  roi: dung 1 lan, bo qua bat tu, -1 ngon lua, mat het dom dom
+PASS  cho 60 tick roi hoi sinh o (0,0,0) van toc 0, bat tu 90
+PASS  sau roi: carried 0
+PASS  roi o ngon lua cuoi: thua no_flames ngay, khong hoi sinh
+PASS  Bong Muc o ngoai bi chan o mep 6 m
+PASS  den vua thap: Bong Muc ben trong bi day ra mep trong <= 30 tick
+PASS  ... va khong gay sat thuong trong luc do (va sau do khong vao lai)
+PASS  dem 1: 2 con tai tick 300 roi 1 con moi 480 tick (780, 1260)
+PASS  id S1, S2, ... theo thu tu sinh
+PASS  trang thai spawning o tick sinh, wander tick sau
+PASS  diem sinh: ban kinh 37 m, goc 15+30k, cach nguoi choi >= 15 m
+PASS  dem 1: toi da 6 Bong Muc
+PASS  dem 3: toi da 10, sinh moi 6 s (tick 300, 660, ...)
+PASS  dem 2: toi da 8, sinh moi 7 s (tick 300, 300, 720)
+PASS  ten trang thai Bong Muc chi thuoc {spawning, wander, chase, recoil, stunned}
+PASS  phat hien 12 m (wander -> chase), bo duoi 18 m (chase -> wander)
+PASS  nhat bua: event charm_picked {C1, 600}
+PASS  hieu luc 600 tick (charm_s 10 -> het o tick 601)
+PASS  bua tai xuat hien sau 2700 tick; nhat lai lam moi
+PASS  co bua: toc do 7.2 m/s
+PASS  co bua: luot khong hoi chieu; bam khi dang luot bi bo qua
+PASS  bua xuat hien lai tick 2701 va duoc nhat lai (lam moi 600)
+PASS  bua: dem 1 khong co; dem 3 co C1 (30,0,25) va C2 (-30,0,25)
+PASS  scenario.charms thay the danh sach mac dinh
+PASS  Gio Lac: idle -> chase khi mang >= 5 va <= 15 m
+PASS  cham (<= 1.2 m): cuop 3, event {drifter_id, amount, carried}
+PASS  sau cuop: flee mang 3, bien mat sau 240 tick
+PASS  moi con chi cuop 1 lan; khong mat ngon lua
+PASS  mang < 5: van idle
+PASS  xa > 15 m: van idle
+PASS  chase giu nguyen khi con dieu kien
+PASS  bat tu khong ngan bi cuop
+PASS  Toa Sang trung Gio Lac dang chase: chuyen flee, khong cuop
+PASS  ... va khong tinh vao stunned_ids/diem
+PASS  Toa Sang trung Gio Lac dang flee mang do: drifter_drop, tha 3 dom dom roi tai cho
+PASS  ... roi bien mat sau 120 tick
+PASS  Gio Lac sinh tai tick 1200, 2400 (id D1, D2), toi da 2
+PASS  dem 1 khong co Gio Lac
+PASS  gio: bao truoc 2 s (tick 1680), bat dau tick 1800, keo dai 300 tick
+PASS  gio day 2 m/s theo dir_deg (300 tick => 10 m)
+PASS  dem 1 khong co gio
+PASS  wind_enabled false tat gio
+PASS  bục (20,0,18): phong len vy 14, ngang 24 m/s ve dao B; phim di chuyen khong ghi de
+PASS  dap trong dao B (~1.4 s sau)
+PASS  bục (50,0,-18): dap trong dao A
+PASS  van luot duoc khi dang bay
+PASS  cau tre x 26..44 di duoc, den dao B
+PASS  cau khong lan can: buoc ra ngoai thi roi
+PASS  bục (0,3,13) Dem 3: vy 12, ngang 8 huong -Z, dap len tang 2 (y=6)
+PASS  vach tang 1 dung dung, khong di len duoc
+PASS  doc 30 do: di len tang 1 (y=3)
+PASS  buoc ra khoi mep tang 1 thi roi xuong tang 0
+PASS  thap chuong (tru r=2) khong leo duoc, tang 2 y=6
+PASS  nap den L1 (0,6,6) tren tang 2
+PASS  paused tai tick 11, resumed tai tick 21
+PASS  dang tam dung: state paused, tick tang, sim_tick/thoi gian/vi tri dung yen
+PASS  tiep tuc: sim_tick tiep tuc (tick 21 -> 11); end.ticks = 40
+PASS  lich sinh va hoi chieu dung yen khi tam dung (khong sinh Bong Muc o tick 300)
+PASS  tat dinh dem 1: cung seed byte-identical, khac seed khac
+PASS  tat dinh dem 2: cung seed byte-identical, khac seed khac
+PASS  tat dinh dem 3: cung seed byte-identical, khac seed khac
+PASS  hieu nang: 1 dem day du (21600 tick) <= 30 s (do duoc 272 ms)
+PASS  exit 2: inputs khong phai JSON
+PASS  exit 2: inputs tick khong tang chat
+PASS  exit 2: inputs move ngoai [-1,1]
+PASS  exit 2: inputs pause sai kieu
+PASS  exit 2: scenario khong phai JSON
+PASS  exit 2: scenario den khong ton tai
+PASS  exit 2: scenario pos sai kieu
+PASS  exit 2: scenario state Bong Muc sai ten
+PASS  exit 2: scenario Gio Lac stolen am
+PASS  thieu --ticks: exit khac 0, co stderr
+PASS  --night 4: loi
+
+145 dat, 0 that bai

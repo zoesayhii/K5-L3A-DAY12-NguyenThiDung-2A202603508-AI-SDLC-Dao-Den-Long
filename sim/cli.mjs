@@ -4,7 +4,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { createSim, SimError } from './sim.mjs';
+import { createSim, SimError, SHADE_STATES, DRIFTER_STATES } from './sim.mjs';
 
 class UsageError extends Error {}
 class InputError extends Error {} // exit 2
@@ -34,7 +34,7 @@ function parseArgs(argv) {
   const ticks = int('ticks', 0, true);
   const every = int('snapshot-every', 1, false) ?? 10;
   const night = int('night', 1, false) ?? 1;
-  if (night !== 1) throw new UsageError('chi ho tro --night 1');
+  if (night > 3) throw new UsageError('--night phai la 1, 2 hoac 3');
   if (a.out === undefined) throw new UsageError('thieu --out');
   return { seed, ticks, every, night, out: a.out, scenario: a.scenario, inputs: a.inputs };
 }
@@ -71,7 +71,7 @@ function validateInputs(raw) {
         throw new InputError(`${at}: move phai la [x,z] trong [-1,1]`);
     }
     if (f.cam_yaw_deg !== undefined && !isNum(f.cam_yaw_deg)) throw new InputError(`${at}: cam_yaw_deg phai la so`);
-    for (const k of ['jump', 'interact', 'pulse', 'dash']) {
+    for (const k of ['jump', 'interact', 'pulse', 'dash', 'pause']) {
       if (f[k] !== undefined && typeof f[k] !== 'boolean') throw new InputError(`${at}: ${k} phai la boolean`);
     }
   }
@@ -91,8 +91,11 @@ function validateScenario(s) {
     if (s.player.pos !== undefined) pos(s.player.pos, 'player');
     if (s.player.carried !== undefined && !(Number.isInteger(s.player.carried) && s.player.carried >= 0)) bad('player.carried');
     if (s.player.flames !== undefined && !(Number.isInteger(s.player.flames) && s.player.flames >= 0)) bad('player.flames');
+    for (const k of ['invuln_ticks', 'dash_cd_ticks', 'pulse_cd_ticks', 'charm_ticks']) {
+      if (s.player[k] !== undefined && !(Number.isInteger(s.player[k]) && s.player[k] >= 0)) bad(`player.${k}`);
+    }
   }
-  for (const k of ['random_motes', 'random_shades']) {
+  for (const k of ['random_motes', 'random_shades', 'random_drifters', 'wind_enabled']) {
     if (s[k] !== undefined && typeof s[k] !== 'boolean') bad(`${k} phai la boolean`);
   }
   if (s.time_left_s !== undefined && !(isNum(s.time_left_s) && s.time_left_s >= 0)) bad('time_left_s');
@@ -106,11 +109,32 @@ function validateScenario(s) {
     s.shades.forEach((x, i) => {
       if (!isObj(x)) bad(`shades[${i}] phai la object`);
       pos(x.pos, `shades[${i}]`);
+      if (x.state !== undefined && !SHADE_STATES.includes(x.state)) bad(`shades[${i}].state khong hop le`);
+      if (x.state_ticks_left !== undefined && !(Number.isInteger(x.state_ticks_left) && x.state_ticks_left >= 0)) bad(`shades[${i}].state_ticks_left`);
       if (x.id !== undefined) {
         if (typeof x.id !== 'string') bad(`shades[${i}].id`);
         if (ids.has(x.id)) bad(`shades: trung id ${x.id}`);
         ids.add(x.id);
       }
+    });
+  }
+  if (s.drifters !== undefined) {
+    if (!Array.isArray(s.drifters)) bad('drifters phai la mang');
+    s.drifters.forEach((d, i) => {
+      if (!isObj(d)) bad(`drifters[${i}] phai la object`);
+      pos(d.pos, `drifters[${i}]`);
+      if (d.state !== undefined && !DRIFTER_STATES.includes(d.state)) bad(`drifters[${i}].state khong hop le`);
+      if (d.stolen !== undefined && !(Number.isInteger(d.stolen) && d.stolen >= 0)) bad(`drifters[${i}].stolen`);
+      if (d.id !== undefined && typeof d.id !== 'string') bad(`drifters[${i}].id`);
+    });
+  }
+  if (s.charms !== undefined) {
+    if (!Array.isArray(s.charms)) bad('charms phai la mang');
+    s.charms.forEach((c, i) => {
+      if (!isObj(c) || typeof c.id !== 'string') bad(`charms[${i}] can id`);
+      pos(c.pos, `charms[${i}]`);
+      if (c.available !== undefined && typeof c.available !== 'boolean') bad(`charms[${i}].available`);
+      if (c.respawn_s !== undefined && !(isNum(c.respawn_s) && c.respawn_s >= 0)) bad(`charms[${i}].respawn_s`);
     });
   }
   if (s.lanterns !== undefined) {
@@ -134,7 +158,7 @@ function main() {
 
   let game;
   try {
-    game = createSim({ contract, seed: args.seed, scenario });
+    game = createSim({ contract, seed: args.seed, night: args.night, scenario });
   } catch (e) {
     if (e instanceof SimError) throw new InputError(e.message);
     throw e;
@@ -145,7 +169,7 @@ function main() {
   push(game.snapshot()); // tick 0
   let fi = 0;
   let steps = 0;
-  while (steps < args.ticks && game.sim.state === 'playing') {
+  while (steps < args.ticks && (game.sim.state === 'playing' || game.sim.state === 'paused')) {
     let frame = {};
     while (fi < frames.length && frames[fi].tick < steps) fi++;
     if (fi < frames.length && frames[fi].tick === steps) frame = frames[fi++];
