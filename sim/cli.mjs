@@ -91,7 +91,7 @@ function validateScenario(s) {
     if (s.player.pos !== undefined) pos(s.player.pos, 'player');
     if (s.player.carried !== undefined && !(Number.isInteger(s.player.carried) && s.player.carried >= 0)) bad('player.carried');
     if (s.player.flames !== undefined && !(Number.isInteger(s.player.flames) && s.player.flames >= 0)) bad('player.flames');
-    for (const k of ['invuln_ticks', 'dash_cd_ticks', 'pulse_cd_ticks', 'charm_ticks']) {
+    for (const k of ['invuln_ticks', 'dash_cd_ticks', 'pulse_cd_ticks', 'charm_ticks', 'successful_lights']) {
       if (s.player[k] !== undefined && !(Number.isInteger(s.player[k]) && s.player[k] >= 0)) bad(`player.${k}`);
     }
   }
@@ -111,6 +111,7 @@ function validateScenario(s) {
       pos(x.pos, `shades[${i}]`);
       if (x.state !== undefined && !SHADE_STATES.includes(x.state)) bad(`shades[${i}].state khong hop le`);
       if (x.state_ticks_left !== undefined && !(Number.isInteger(x.state_ticks_left) && x.state_ticks_left >= 0)) bad(`shades[${i}].state_ticks_left`);
+      if (x.target_lantern_id !== undefined && typeof x.target_lantern_id !== 'string') bad(`shades[${i}].target_lantern_id`);
       if (x.id !== undefined) {
         if (typeof x.id !== 'string') bad(`shades[${i}].id`);
         if (ids.has(x.id)) bad(`shades: trung id ${x.id}`);
@@ -143,6 +144,9 @@ function validateScenario(s) {
       if (!isObj(l) || typeof l.id !== 'string') bad(`lanterns[${i}] can id`);
       if (l.pos !== undefined) pos(l.pos, `lanterns[${i}]`);
       if (l.lit !== undefined && typeof l.lit !== 'boolean') bad(`lanterns[${i}].lit`);
+      if (l.ever_lit !== undefined && typeof l.ever_lit !== 'boolean') bad(`lanterns[${i}].ever_lit`);
+      if (l.fuel !== undefined && !(isNum(l.fuel) && l.fuel >= 0)) bad(`lanterns[${i}].fuel`);
+      if (l.relit_count !== undefined && !(Number.isInteger(l.relit_count) && l.relit_count >= 0)) bad(`lanterns[${i}].relit_count`);
     });
   }
   return s;

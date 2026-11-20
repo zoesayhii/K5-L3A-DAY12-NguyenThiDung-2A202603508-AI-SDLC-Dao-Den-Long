@@ -1,4 +1,4 @@
-// Kiem chung headless (Phase 1 hoi quy voi so chuan + Phase 2 / contract v1.1).
+// Kiem chung headless (contract v1.2). Phase 1-2 hoi quy; test bi luat Phase 3 lam sai duoc cap nhat, moi cho ghi "[P3]" + ly do (xem docs/CHANGELOG.md).
 // Chay: node scripts/verify.mjs (hoac scripts/verify.sh). Scenario duoc ghi ra scenarios/ lam bang chung.
 import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdtempSync, existsSync, mkdirSync } from 'node:fs';
@@ -62,8 +62,9 @@ const four = [{ id: 'L1', lit: true }, { id: 'L2', lit: true }, { id: 'L3', lit:
   check('snapshot moi 10 tick tu 0', r.snaps.map((s) => s.tick).join() === '0,10,20,30,40,50,60,70,80,90,100');
   const s0 = r.snaps[0];
   check('snapshot 0: Mây o (0,0,0), grounded, dem 1', JSON.stringify(s0.player.pos) === '[0,0,0]' && s0.player.grounded && s0.night === 1);
-  check('contract v1.1 + tuning chuan', contract.contract_version === '1.1' && T.player_speed === 6 && T.carry_capacity === 10 && T.lantern_cost === 10 && T.dash_speed === 14 && T.night3_duration_s === 360);
-  check('time_left_s = 300 - sim_tick/60', s0.time_left_s === 300 && near(r.snaps[6].time_left_s, 299, 0.001));
+  // [P3] contract 1.1 -> 1.2, thoi gian Dem 300/330/360 -> 240/270/300 (Ticket-03 muc 3, 7)
+  check('contract v1.2 + tuning chuan', contract.contract_version === '1.2' && T.player_speed === 6 && T.carry_capacity === 10 && T.lantern_cost === 10 && T.dash_speed === 14 && T.night1_duration_s === 240 && T.night2_duration_s === 270 && T.night3_duration_s === 300 && T.fuel_max === 100 && T.relight_cost === 5 && T.win_ratio === 0.6 && T.capacity_max === 20);
+  check('time_left_s = 240 - sim_tick/60 [P3: 300 -> 240]', s0.time_left_s === T.night1_duration_s && near(r.snaps[6].time_left_s, T.night1_duration_s - 1, 0.001));
   const keys = ['night', 'wind', 'motes', 'drifters', 'charms'];
   const pk = ['vel', 'grounded', 'invuln', 'dash_cd_s', 'pulse_cd_s', 'charm_s'];
   check('snapshot v1.1 co night, wind, motes, drifters, charms', keys.every((k) => k in s0) && 'active' in s0.wind && 'dir_deg' in s0.wind);
@@ -73,7 +74,7 @@ const four = [{ id: 'L1', lit: true }, { id: 'L2', lit: true }, { id: 'L3', lit:
   check('--ticks 0: snapshot 0 + end', r0.snaps.length === 1 && r0.end.ticks === 0);
   for (const [n, lanterns] of [[1, 5], [2, 6], [3, 7]]) {
     const rn = run({ name: `night${n}-start`, night: n, ticks: 1, scenario: sc() });
-    check(`dem ${n}: ${lanterns} den, time_left ${[300, 330, 360][n - 1]}s`, rn.snaps[0].lanterns.length === lanterns && rn.snaps[0].time_left_s === [300, 330, 360][n - 1] && rn.snaps[0].night === n);
+    check(`dem ${n}: ${lanterns} den, time_left ${[240, 270, 300][n - 1]}s [P3: 300/330/360 -> 240/270/300]`, rn.snaps[0].lanterns.length === lanterns && rn.snaps[0].time_left_s === [T.night1_duration_s, T.night2_duration_s, T.night3_duration_s][n - 1] && rn.snaps[0].night === n);
   }
   const l1 = run({ name: 'maps', ticks: 0, scenario: sc() }).snaps[0].lanterns.map((l) => l.pos.join());
   check('dem 1: toa do den chuan', l1.join('|') === '0,0,25|23.8,0,7.7|14.7,0,-20.2|-14.7,0,-20.2|-23.8,0,7.7');
@@ -149,7 +150,7 @@ const four = [{ id: 'L1', lit: true }, { id: 'L2', lit: true }, { id: 'L3', lit:
   const full = run({ name: 'deposit-full', ticks: 3, scenario: sc({ player: { pos: L(1, 'L1'), carried: 10 } }), inputs: [{ tick: 0, interact: true }] });
   const d = ev(full, 'deposit')[0];
   check('nap du 10: deposit amount 10, lantern_lit L1, tick 1', d?.data.lantern_id === 'L1' && d.data.amount === 10 && d.data.deposited === 10 && d.tick === 1 && ev(full, 'lantern_lit')[0]?.data.lantern_id === 'L1');
-  check('diem: 10/dom dom nap + 100/den = 200', full.end.score === 10 * 10 + 100, String(full.end.score));
+  check('diem [P3: 10/mote -> 5/mote]: 5 x 10 nap + 100 thap lan dau = 150', full.end.score === SC.per_mote * 10 + SC.per_lantern && full.end.score === 150, String(full.end.score));
   const cum = run({ name: 'deposit-cumulative', ticks: 40, scenario: sc({ player: { pos: L(1, 'L1'), carried: 4 }, motes: [[0, 26.5]] }),
     inputs: [{ tick: 0, interact: true }, { tick: 1, interact: false, move: [0, 1] }, { tick: 9, move: [0, 0] }, { tick: 30, interact: true }] });
   const ds = ev(cum, 'deposit');
@@ -162,19 +163,32 @@ const four = [{ id: 'L1', lit: true }, { id: 'L2', lit: true }, { id: 'L3', lit:
   check('hai den cung khoang cach: chon id nho hon (L1)', ev(tie, 'deposit')[0]?.data.lantern_id === 'L1');
   const nearest = run({ name: 'interact-nearest', ticks: 2, scenario: sc({ player: { pos: [0, 0], carried: 4 }, lanterns: [{ id: 'L1', pos: [1.5, 0] }, { id: 'L3', pos: [0.5, 0] }] }), inputs: [{ tick: 0, interact: true }] });
   check('chon den gan nhat (L3)', ev(nearest, 'deposit')[0]?.data.lantern_id === 'L3');
-  const lit = run({ name: 'interact-skip-lit', ticks: 2, scenario: sc({ player: { pos: [0, 0], carried: 4 }, lanterns: [{ id: 'L1', pos: [0.5, 0], lit: true }, { id: 'L2', pos: [1.5, 0] }] }), inputs: [{ tick: 0, interact: true }] });
-  check('chi xet den chua sang (bo qua den da sang gan hon)', ev(lit, 'deposit')[0]?.data.lantern_id === 'L2');
+  // [P3] truoc day den da sang bi bo qua; nay den sang chua day dau cung nhan duoc (chau dau), chon gan nhat
+  const lit = run({ name: 'interact-lit-nearest', ticks: 2, scenario: sc({ player: { pos: [0, 0], carried: 4 }, lanterns: [{ id: 'L1', pos: [0.5, 0], lit: true }, { id: 'L2', pos: [1.5, 0] }] }), inputs: [{ tick: 0, interact: true }] });
+  check('[P3] den sang chua day dau nhan duoc va la den gan nhat (chau dau L1, khong nap L2)', ev(lit, 'refuel')[0]?.data.lantern_id === 'L1' && ev(lit, 'deposit').length === 0);
 }
 
 // ===== Thang / thua
 {
-  const win = run({ name: 'win', ticks: 600, scenario: sc({ player: { pos: L(1, 'L5'), carried: 10 }, lanterns: four }), inputs: [{ tick: 0, interact: true }] });
+  // [P3] het thang som (all_lit). Thang = song sot toi binh minh va so den sang >= ceil(0.6 x tong)
+  const three = [{ id: 'L1', lit: true }, { id: 'L2', lit: true }, { id: 'L3', lit: true }];
+  const win = run({ name: 'win-dawn', ticks: 600, scenario: sc({ time_left_s: 1 / 60, lanterns: three }) });
   const g = ev(win, 'game_over')[0];
-  const expected = 100 + 100 + 2 * Math.floor(300 - 1 / 60) + 50 * 3;
-  check('thang all_lit tai tick 1, dung o game over', g?.data.result === 'won' && g.data.reason === 'all_lit' && g.tick === 1 && win.end.ticks === 1 && win.end.state === 'won');
-  check('diem thang = 10*nap + 100*den + 2*floor(giay con) + 50*ngon lua', win.end.score === expected, `${win.end.score} vs ${expected}`);
-  const tick = run({ name: 'win-at-timeout', ticks: 5, scenario: sc({ time_left_s: 1 / 60, player: { pos: L(1, 'L5'), carried: 10 }, lanterns: four }), inputs: [{ tick: 0, interact: true }] });
-  check('thang dung tick het gio (khong thanh dawn)', ev(tick, 'game_over')[0]?.data.reason === 'all_lit' && tick.end.state === 'won');
+  check('[P3] thang dawn_survived tai tick binh minh (3/5 den sang)', g?.data.result === 'won' && g.data.reason === 'dawn_survived' && g.tick === 1 && win.end.ticks === 1 && win.end.state === 'won');
+  const expected = 3 * (SC.per_dawn_lantern + 99) + SC.per_flame_left * T.flames;
+  check('[P3] diem binh minh: moi den sang +50+floor(fuel), moi Ngon Lua +50, khong thuong thoi gian', win.end.score === expected, `${win.end.score} vs ${expected}`);
+  const early = run({ name: 'no-early-win', ticks: 600, scenario: sc({ lanterns: [1, 2, 3, 4, 5].map((i) => ({ id: `L${i}`, lit: true })) }) });
+  check('[P3] thap du 5/5 den khong ket thuc Dem', early.end.state === 'playing' && ev(early, 'game_over').length === 0);
+  for (const [n, total, need] of [[1, 5, 3], [2, 6, 4], [3, 7, 5]]) {
+    const mk = (k) => run({ name: `threshold-${n}-${k}`, night: n, ticks: 3, scenario: sc({ time_left_s: 1 / 60, lanterns: Array.from({ length: k }, (_, i) => ({ id: `L${i + 1}`, lit: true })) }) });
+    const ok = mk(need);
+    const no = mk(need - 1);
+    check(`[P3] dem ${n}: ${need}/${total} den thang, ${need - 1}/${total} thua dawn`, ev(ok, 'game_over')[0]?.data.reason === 'dawn_survived' && ev(no, 'game_over')[0]?.data.reason === 'dawn' && no.end.state === 'lost');
+  }
+  const tick = run({ name: 'win-at-timeout', ticks: 5, scenario: sc({ time_left_s: 1 / 60, lanterns: three }) });
+  check('thang dung tick het gio (khong xet them tick sau)', tick.end.ticks === 1 && tick.end.state === 'won');
+  const lastFlame = run({ name: 'lose-last-tick', ticks: 5, scenario: sc({ time_left_s: 1 / 60, player: { flames: 1 }, lanterns: three, shades: [{ id: 'A', pos: [0.5, 0] }] }) });
+  check('[P3] het Ngon Lua o tick binh minh: thua no_flames truoc, du du den', ev(lastFlame, 'game_over')[0]?.data.reason === 'no_flames' && lastFlame.end.state === 'lost');
   const dawn = run({ name: 'dawn', ticks: 600, scenario: sc({ time_left_s: 1 }) });
   const gd = ev(dawn, 'game_over')[0];
   check('thua dawn tai tick 60, time_left_s 0', gd?.data.reason === 'dawn' && gd.tick === 60 && dawn.end.ticks === 60 && dawn.at(60).time_left_s === 0 && dawn.end.score === 0);
@@ -192,7 +206,8 @@ const four = [{ id: 'L1', lit: true }, { id: 'L2', lit: true }, { id: 'L3', lit:
   check('ton 3 dom dom moi lan, +5 diem moi lan trung', r.at(1).player.carried === 3 && r.at(181).player.carried === 0 && r.end.score >= 5);
   check('choang 120 tick (state_ticks_left 120 tai tick 1)', r.at(1).shades[0].state === 'stunned' && r.at(1).shades[0].state_ticks_left === 120);
   check('day lui tong 4 m trong 15 tick (3 -> 7), dung sau do', near(r.at(15).shades[0].pos[0], 7, 0.01) && near(r.at(30).shades[0].pos[0], 7, 0.01) && r.at(10).shades[0].pos[0] < 7);
-  check('het choang sau 120 tick -> chase', r.at(120).shades[0].state === 'stunned' && r.at(121).shades[0].state === 'chase');
+  // [P3] Ticket-03 muc 2: het choang thi ve wander (truoc day ve chase neu ca 12 m)
+  check('[P3] het choang sau 120 tick -> wander', r.at(120).shades[0].state === 'stunned' && r.at(121).shades[0].state === 'wander');
   check('pulse_cd_s = 3.0 luc kich hoat', near(r.at(1).player.pulse_cd_s, 3, 0.001));
   const few = run({ name: 'pulse-poor', ticks: 3, scenario: sc({ player: { carried: 2 }, shades: [{ id: 'A', pos: [3, 0] }] }), inputs: [{ tick: 0, pulse: true }] });
   check('khong du 3 dom dom: khong kich hoat', ev(few, 'pulse').length === 0 && few.at(3).player.carried === 2);
@@ -382,6 +397,79 @@ const four = [{ id: 'L1', lit: true }, { id: 'L2', lit: true }, { id: 'L3', lit:
   check('lich sinh va hoi chieu dung yen khi tam dung (khong sinh Bong Muc o tick 300)', ev(frozen, 'shade_spawned').length === 0 && frozen.at(310).sim_tick === 0);
 }
 
+// ===== [P3] Nhien lieu den, chau dau, thap lai, Bong Muc hut dau, suc chua
+{
+  const lit = (id, fuel, extra = {}) => ({ id, lit: true, fuel, ...extra });
+  const decay = run({ name: 'fuel-decay', ticks: 120, scenario: sc({ lanterns: [lit('L1', 50)] }) });
+  check('hao 1 don vi/giay (50 -> 49.0 sau 60 tick, 48.0 sau 120)', decay.at(60).lanterns[0].fuel === 49 && decay.at(120).lanterns[0].fuel === 48);
+  const first = run({ name: 'fuel-on-light', ticks: 61, scenario: sc({ player: { pos: [0, 25], carried: 10 } }), inputs: [{ tick: 0, interact: true }] });
+  const ll = ev(first, 'lantern_lit')[0];
+  check('thap lan dau: fuel 100, lantern_lit {relight:false}, ever_lit true, relit_count 0', ll?.data.relight === false && first.at(1).lanterns[0].fuel === 100 && first.at(1).lanterns[0].ever_lit === true && first.at(1).lanterns[0].relit_count === 0);
+  const ref = run({ name: 'refuel', ticks: 2, scenario: sc({ player: { pos: [0, 25], carried: 3 }, lanterns: [lit('L1', 55)] }), inputs: [{ tick: 0, interact: true }] });
+  const re = ev(ref, 'refuel')[0];
+  check('chau dau: used = min(mang, ceil((100-fuel)/10)); fuel += 10 x used; event {lantern_id, amount, fuel}', re?.data.lantern_id === 'L1' && re.data.amount === 3 && re.data.fuel === 85 && ref.at(1).player.carried === 0);
+  check('chau dau: +5 diem moi dom dom', ref.end.score === 3 * SC.per_mote);
+  const cap = run({ name: 'refuel-capped', ticks: 2, scenario: sc({ player: { pos: [0, 25], carried: 10 }, lanterns: [lit('L1', 95)] }), inputs: [{ tick: 0, interact: true }] });
+  check('chau dau toi da 100: chi dung ceil(5/10)=1 dom dom', ev(cap, 'refuel')[0]?.data.amount === 1 && ev(cap, 'refuel')[0].data.fuel === 100 && cap.at(1).player.carried === 9);
+  const out = run({ name: 'lantern-out', ticks: 5, scenario: sc({ lanterns: [lit('L1', 1 / 60)] }) });
+  const oe = ev(out, 'lantern_out')[0];
+  check('het dau (fuel <= 0): lantern_out, tat, deposited 0, fuel 0, ever_lit true', oe?.data.lantern_id === 'L1' && oe.tick === 1 && out.at(1).lanterns[0].lit === false && out.at(1).lanterns[0].deposited === 0 && out.at(1).lanterns[0].fuel === 0 && out.at(1).lanterns[0].ever_lit === true);
+  const relight = run({ name: 'relight', ticks: 3, scenario: sc({ player: { pos: [0, 25], carried: 5 }, lanterns: [{ id: 'L1', lit: false, ever_lit: true }] }), inputs: [{ tick: 0, interact: true }] });
+  const rl = ev(relight, 'lantern_lit')[0];
+  check('thap lai chi can 5 dom dom: lantern_lit {relight:true}, relit_count 1, fuel 100, +5/mote +40', rl?.data.relight === true && relight.at(1).lanterns[0].relit_count === 1 && relight.at(1).lanterns[0].fuel === 100 && relight.end.score === 5 * SC.per_mote + SC.per_relight);
+  const first5 = run({ name: 'first-light-needs-10', ticks: 3, scenario: sc({ player: { pos: [0, 25], carried: 5 } }), inputs: [{ tick: 0, interact: true }] });
+  check('den chua tung sang van can 10: 5 dom dom chi nap mot phan', ev(first5, 'lantern_lit').length === 0 && ev(first5, 'deposit')[0]?.data.deposited === 5);
+  const prio = run({ name: 'interact-lit-vs-unlit', ticks: 2, scenario: sc({ player: { pos: [0, 0], carried: 4 }, lanterns: [{ id: 'L2', pos: [0.5, 0] }, { id: 'L1', pos: [1.5, 0], lit: true, fuel: 40 }] }), inputs: [{ tick: 0, interact: true }] });
+  check('chon den nhan duoc gan nhat, den tat gan hon (L2) duoc nap truoc den sang xa hon', ev(prio, 'deposit')[0]?.data.lantern_id === 'L2' && ev(prio, 'refuel').length === 0);
+
+  // suc chua
+  const c0 = run({ name: 'capacity-0', ticks: 1, scenario: sc() });
+  const c3 = run({ name: 'capacity-3', ticks: 2, scenario: sc({ player: { carried: 15, successful_lights: 3 }, motes: [[0.5, 0], [0, 0.5]] }) });
+  check('suc chua = 10 + 2 x successful_lights: 10; 3 lan thap -> 16 (nhat toi 16)', c0.at(0).player.capacity === 10 && c3.at(0).player.capacity === 16 && c3.at(2).player.carried === 16);
+  const c20 = run({ name: 'capacity-max', ticks: 1, scenario: sc({ player: { successful_lights: 20 } }) });
+  check('suc chua toi da 20', c20.at(0).player.capacity === 20);
+  const cl = run({ name: 'capacity-grows', ticks: 2, scenario: sc({ player: { pos: [0, 25], carried: 10 } }), inputs: [{ tick: 0, interact: true }] });
+  check('moi lan thap thanh cong +2 suc chua (thap lai cung tinh); den dat san bang scenario khong tinh', cl.at(2).player.capacity === 12 && run({ name: 'capacity-preset', ticks: 1, scenario: sc({ lanterns: [lit('L1', 100)] }) }).at(0).player.capacity === 10);
+
+  // vung an toan theo nhien lieu
+  const weak = run({ name: 'zone-lost-below-30', ticks: 400, scenario: sc({ player: { pos: [0, 15] }, lanterns: [lit('L1', 29)], shades: [{ id: 'A', pos: [0, 33] }] }) });
+  const minW = Math.min(...weak.snaps.map((x) => Math.hypot(x.shades[0].pos[0], x.shades[0].pos[2] - 25)));
+  check('fuel < 30: mat vung an toan (Bong Muc vao duoc ben trong 6 m)', minW < 5, `min=${minW}`);
+  const exact = run({ name: 'zone-kept-at-30', ticks: 40, scenario: sc({ player: { pos: [0, 25], carried: 1 }, lanterns: [lit('L1', 20 + 1 / 60)], shades: [{ id: 'A', pos: [0, 27] }] }), inputs: [{ tick: 0, interact: true }] });
+  check('chau dau len dung 30.0 van con vung an toan: Bong Muc trong 6 m bi day ra, khong gay sat thuong', ev(exact, 'refuel')[0]?.data.fuel === 30 && Math.hypot(exact.at(30).shades[0].pos[0], exact.at(30).shades[0].pos[2] - 25) >= 5.99 && ev(exact, 'player_hit').length === 0);
+
+  // Bong Muc hut dau
+  const drain = run({ name: 'drain', ticks: 130, scenario: sc({ player: { pos: [0, -20] }, lanterns: [lit('L1', 20)], shades: [{ id: 'A', pos: [0, 26], state: 'wander' }] }) });
+  check('wander toi den yeu (fuel<30) trong 2 m -> drain, dung yen, target L1', drain.at(2).shades[0].state === 'drain' && drain.at(2).shades[0].target_lantern_id === 'L1' && drain.at(30).shades[0].pos.join() === drain.at(2).shades[0].pos.join());
+  const f61 = drain.at(61).lanterns[0].fuel;
+  check('hut 5 fuel/giay + hao 1/giay (fuel ~13.98 sau 61 tick)', near(f61, 20 - 61 / 60 - (60 * 5) / 60, 0.1), String(f61));
+  const fd = ev(drain, 'fuel_drain');
+  check('fuel_drain {lantern_id, shade_id, fuel} moi 60 tick khi dang hut', fd.length === 2 && fd[0].tick === 61 && fd[1].tick === 121 && fd[0].data.shade_id === 'A' && fd[0].data.lantern_id === 'L1', JSON.stringify(fd.map((e) => e.tick)));
+  const two = run({ name: 'drain-stack', ticks: 62, scenario: sc({ player: { pos: [0, -20] }, lanterns: [lit('L1', 28)], shades: [{ id: 'A', pos: [0, 26], state: 'wander' }, { id: 'B', pos: [1, 26], state: 'wander' }] }) });
+  check('nhieu Bong Muc hut cong don (2 con: 11 don vi/giay)', near(two.at(62).lanterns[0].fuel, 28 - 62 / 60 - (60 * 10) / 60, 0.2), String(two.at(62).lanterns[0].fuel));
+  const dout = run({ name: 'drain-out', ticks: 200, scenario: sc({ player: { pos: [0, -20] }, lanterns: [lit('L1', 4)], shades: [{ id: 'A', pos: [0, 26], state: 'wander' }] }) });
+  const dl = ev(dout, 'lantern_out')[0];
+  check('bi hut het dau: lantern_out, Bong Muc ve wander', !!dl && dout.at(dl.tick + 1).shades[0].state !== 'drain');
+  const dc = run({ name: 'drain-to-chase', ticks: 1, scenario: sc({ player: { pos: [0, 21] }, lanterns: [lit('L1', 20)], shades: [{ id: 'A', pos: [0, 26], state: 'drain', target_lantern_id: 'L1' }] }) });
+  check('drain -> chase khi Mây vao trong 6 m', dc.at(1).shades[0].state === 'chase');
+  const dp = run({ name: 'drain-pulse', ticks: 1, scenario: sc({ player: { pos: [0, 23], carried: 3 }, lanterns: [lit('L1', 20)], shades: [{ id: 'A', pos: [0, 26], state: 'drain', target_lantern_id: 'L1' }] }), inputs: [{ tick: 0, pulse: true }] });
+  check('drain -> stunned khi trung Toa Sang; diem +15 (khong phai 5+15)', dp.at(1).shades[0].state === 'stunned' && dp.end.score === SC.per_stun_drain && SC.per_stun_drain === 15);
+  const plain = run({ name: 'pulse-score-plain', ticks: 1, scenario: sc({ player: { carried: 3 }, shades: [{ id: 'A', pos: [3, 0] }] }), inputs: [{ tick: 0, pulse: true }] });
+  check('trung Toa Sang khi khong drain: +5', plain.end.score === SC.per_stun);
+  const far = run({ name: 'drain-too-far', ticks: 1, scenario: sc({ player: { pos: [0, -20] }, lanterns: [lit('L1', 20)], shades: [{ id: 'A', pos: [0, 28], state: 'drain', target_lantern_id: 'L1' }] }) });
+  check('drain -> wander khi cach den > 2 m', far.at(1).shades[0].state === 'wander');
+  const unlitT = run({ name: 'drain-unlit', ticks: 1, scenario: sc({ player: { pos: [0, -20] }, shades: [{ id: 'A', pos: [0, 26], state: 'drain', target_lantern_id: 'L1' }] }) });
+  check('drain -> wander khi den tat', unlitT.at(1).shades[0].state === 'wander');
+  const refd = run({ name: 'drain-refuel-evict', ticks: 3, scenario: sc({ player: { pos: [0, 23.5], carried: 2 }, lanterns: [lit('L1', 20)], shades: [{ id: 'A', pos: [0, 26], state: 'drain', target_lantern_id: 'L1' }] }), inputs: [{ tick: 0, interact: true }] });
+  check('chau dau len >= 30: drain -> wander, Bong Muc bi day ra', ev(refd, 'refuel')[0]?.data.fuel >= 30 && refd.at(1).shades[0].state === 'wander' && ev(refd, 'fuel_drain').length === 0);
+  // chon muc tieu wander
+  const tgt = run({ name: 'wander-target-weakest', ticks: 2, scenario: sc({ player: { pos: [0, 38] }, lanterns: [lit('L1', 10, { pos: [10, 0] }), lit('L2', 10, { pos: [-10, 0] }), lit('L3', 100, { pos: [0, 5] })], shades: [{ id: 'A', pos: [0, 0], state: 'wander' }] }) });
+  check('wander toi den yeu gan nhat; bang nhau thi id nho hon (L1, bo qua L3 day dau)', tgt.at(1).shades[0].target_lantern_id === 'L1');
+  const tgt2 = run({ name: 'wander-target-unlit', ticks: 61, scenario: sc({ player: { pos: [0, 38] }, lanterns: [lit('L1', 100, { pos: [0, 20] })], shades: [{ id: 'A', pos: [30, 0], state: 'wander' }] }) });
+  const dist = (t) => Math.hypot(tgt2.at(t).shades[0].pos[0] - 23.8, tgt2.at(t).shades[0].pos[2] - 7.7);
+  check('khong co den yeu: di ve den tat gan nhat (L2), toc do 4 m/s', tgt2.at(1).shades[0].target_lantern_id === 'L2' && near(dist(1) - dist(61), 4, 0.3), `${dist(1)} -> ${dist(61)}`);
+}
+
 // ===== Tat dinh, hieu nang
 {
   const inputs = [{ tick: 0, move: [1, 0.3] }, { tick: 120, move: [-0.5, 1], jump: true }, { tick: 121, jump: false }, { tick: 300, move: [0, 0], pulse: true }, { tick: 301, pulse: false }, { tick: 400, dash: true }];
@@ -391,8 +479,8 @@ const four = [{ id: 'L1', lit: true }, { id: 'L2', lit: true }, { id: 'L3', lit:
     const c = run({ name: `determinism-${n}`, night: n, seed: 8, ticks: 3000, every: 10, inputs });
     check(`tat dinh dem ${n}: cung seed byte-identical, khac seed khac`, a.text.length > 0 && a.text === b.text && a.text !== c.text);
   }
-  const full = run({ name: 'perf-night3', night: 3, seed: 3, ticks: 21600, every: 10, scenario: { player: { flames: 9999 } } });
-  check(`hieu nang: 1 dem day du (21600 tick) <= 30 s (do duoc ${full.ms} ms)`, full.code === 0 && full.ms <= 30000 && full.end.ticks === 21600 && full.end.state === 'lost');
+  const full = run({ name: 'perf-night3', night: 3, seed: 3, ticks: 18000, every: 10, scenario: { player: { flames: 9999 } } });
+  check(`hieu nang: 1 dem day du (18000 tick, Dem 3 = 300 s) <= 30 s (do duoc ${full.ms} ms)`, full.code === 0 && full.ms <= 30000 && full.end.ticks === 18000 && full.end.state === 'lost');
 }
 
 // ===== Loi dau vao
