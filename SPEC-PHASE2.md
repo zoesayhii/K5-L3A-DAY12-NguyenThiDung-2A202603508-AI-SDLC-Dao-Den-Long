@@ -18,9 +18,6 @@ Nguồn: Ticket-02 "Ba hòn đảo". Số chuẩn nằm trong `game.contract.jso
 | HUD đầy đủ | Theo Ticket | **Chưa làm** (UI) |
 | Bảng màu chuẩn, ánh sáng môi trường 0.15 + 0.55 × tiến độ | Theo Ticket | **Chưa làm** (UI) |
 
-## Sai lệch có chủ ý so với Ticket
-- **Tốc độ Bóng Mực** giảm còn 2.8 m/s (Đêm 3: 3.2 m/s) thay vì 4.0 (4.5) theo yêu cầu của người làm bài, để game dễ chơi hơn. Đây là **sai lệch khỏi số chuẩn bắt buộc của Ticket**: headless của tôi sẽ không khớp bản chuẩn, có thể mất điểm test ẩn. Muốn quay lại chuẩn: đặt `shade_speed` = 4.0 và `shade_speed_night3` = 4.5 trong `game.contract.json`.
-
 ## Giả định Phase 2 (chỗ Ticket chưa nói)
 - **Đêm 3 xuất phát:** (0,0,−30) trên tầng 0, vì (0,0,0) nằm trong tháp chuông. Hồi sinh sau khi rơi cũng ở điểm xuất phát của Đêm đó. Đêm 2 xuất phát (0,0,0).
 - **Hướng quay ban đầu:** +Z.
