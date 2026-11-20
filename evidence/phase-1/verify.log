@@ -1,0 +1,40 @@
+PASS  exit 0
+PASS  dong cuoi la end, ticks=100
+PASS  snapshot 0 co tick 0, sau do moi 10 tick
+PASS  snapshot 0 truoc input: player o (0,0,0)
+PASS  time_left_s = duration - steps/60
+PASS  tuning khop contract: flames, 5 den
+PASS  --ticks 0: snapshot 0 + end
+PASS  --snapshot-every 7
+PASS  nhat dom dom: event tick=1, carried=1
+PASS  nhat dom dom: +per_mote, motes_active=0
+PASS  day carry_capacity: khong nhat them
+PASS  deposit: lantern_id L1, amount, deposited
+PASS  lantern_lit L1, +per_lantern
+PASS  1 den sang chua thang
+PASS  nap mot phan: khong sang den
+PASS  interact ngoai interact_radius: khong nap
+PASS  thang all_lit tai tick 1
+PASS  diem thang = den + giay con lai + flame con lai
+PASS  dung o game over: end.ticks=1, state=won
+PASS  pulse: stunned_ids=[A], 1 lan (cooldown chan lan 2)
+PASS  pulse: shade stunned va bi day +pulse_push_m
+PASS  pulse: ton pulse_cost, +per_stun
+PASS  het stun sau pulse_stun_s: ve chase
+PASS  pulse khong du carried: khong phat
+PASS  player_hit by shade, flames-1, dropped = floor(carried*ratio)
+PASS  bat tu invuln_s: chi 1 hit trong 80 tick
+PASS  thua no_flames
+PASS  thua dawn tai tick 60, time_left_s=0
+PASS  tat dinh: cung seed => byte-identical
+PASS  khac seed => khac output
+PASS  random_shades: >=3 shade ban dau, co shade_spawned khi chay qua 600 tick
+PASS  exit 2: inputs khong phai JSON
+PASS  exit 2: inputs tick khong tang chat
+PASS  exit 2: inputs move ngoai [-1,1]
+PASS  exit 2: scenario khong phai JSON
+PASS  exit 2: scenario den khong ton tai
+PASS  exit 2: scenario pos sai kieu
+PASS  thieu --ticks: exit khac 0, co stderr
+
+38 dat, 0 that bai

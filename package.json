@@ -1,0 +1,14 @@
+{
+  "name": "dao-den-long",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "headless": "node sim/cli.mjs",
+    "verify": "bash scripts/verify.sh"
+  },
+  "dependencies": {
+    "three": "^0.187.0"
+  }
+}

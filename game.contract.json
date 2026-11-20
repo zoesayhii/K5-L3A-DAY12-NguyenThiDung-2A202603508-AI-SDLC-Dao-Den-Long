@@ -1,0 +1,30 @@
+{
+  "contract_version": "1.0",
+  "team": "2A202603508-NguyenThiDung",
+  "build_cmd": "npm install",
+  "run_cmd": "npm start",
+  "headless_cmd": "node sim/cli.mjs",
+  "tuning": {
+    "player_speed": 6,
+    "carry_capacity": 5,
+    "lantern_cost": 3,
+    "lantern_count_night1": 5,
+    "pickup_radius": 1.2,
+    "interact_radius": 2.5,
+    "pulse_cost": 1,
+    "pulse_radius": 5,
+    "night1_duration_s": 180,
+    "flames": 3,
+    "invuln_s": 1.5,
+    "hit_drop_ratio": 0.5,
+    "pulse_stun_s": 3,
+    "pulse_push_m": 2,
+    "pulse_cooldown_s": 2,
+    "safe_radius": 4,
+    "shade_speed": 3.5,
+    "shade_hit_radius": 0.8,
+    "fall_enabled": false,
+    "score": { "per_mote": 1, "per_lantern": 50, "per_stun": 5,
+               "per_second_left": 1, "per_flame_left": 20 }
+  }
+}

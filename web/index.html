@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Đảo Đèn Lồng</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#0d0a18;font-family:system-ui,sans-serif;color:#ffe9c4}
+  canvas{display:block}
+  #hud{position:fixed;top:0;left:0;right:0;display:flex;gap:18px;padding:10px 16px;background:linear-gradient(#0d0a18cc,transparent);font-size:18px;pointer-events:none}
+  #hud b{color:#ffb347}
+  #help{position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:13px;opacity:.75;pointer-events:none}
+  #overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:#0d0a18bb;text-align:center}
+  #overlay h1{font-size:44px;margin:0 0 8px}
+  #overlay button{margin-top:18px;font-size:20px;padding:10px 24px;border:0;border-radius:8px;background:#ffb347;color:#2a1a05;cursor:pointer}
+  #toast{position:fixed;top:56px;left:0;right:0;text-align:center;font-size:20px;opacity:0;transition:opacity .3s;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="hud">
+  <span>🔥 Ngọn lửa <b id="flames"></b></span>
+  <span>✨ Đang mang <b id="carried"></b></span>
+  <span>🏮 Đèn <b id="lit"></b></span>
+  <span>⏳ <b id="time"></b></span>
+  <span>Điểm <b id="score"></b></span>
+</div>
+<div id="toast"></div>
+<div id="help">WASD: di chuyển · Space: nhảy · E: nạp đèn · F: xung ánh sáng · ← →/kéo chuột: xoay camera · R: chơi lại</div>
+<div id="overlay"><h1 id="otitle"></h1><div id="osub"></div><button id="again">Chơi lại (R)</button></div>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js"}}</script>
+<script type="module" src="/web/main.mjs"></script>
+</body>
+</html>

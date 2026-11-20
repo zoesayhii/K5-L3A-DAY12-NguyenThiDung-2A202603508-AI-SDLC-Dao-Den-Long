@@ -1,0 +1,1 @@
+[{"tick":0,"move":[1,0.3]},{"tick":120,"move":[-0.5,1],"jump":true},{"tick":121,"jump":false},{"tick":300,"move":[0,0],"pulse":true}]
