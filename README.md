@@ -43,7 +43,7 @@ Gợi ý nguy hiểm chỉ ở giao diện, không đổi số chuẩn hay đầ
 - Viền đỏ và tiếng cảnh báo khi có Bóng Mực đang đuổi trong 10 m.
 - Vòng vàng bán kính 5 m quanh Mây khi Tỏa Sáng dùng được và Bóng Mực đã tới gần (cách dưới 9 m): vòng mờ khi chưa trúng, sáng rõ khi có Bóng Mực nằm trong tầm trúng của F (cùng công thức khoảng cách 3D với lõi).
 
-Bằng chứng lõi vẫn đúng: `bash scripts/verify.sh` (145/145). Giao diện của các gợi ý mới chỉ kiểm tra là trang tải được, chưa thấy trực tiếp mũi tên và viền đỏ khi có Bóng Mực.
+Bằng chứng lõi vẫn đúng: `bash scripts/verify.sh` (145/145). Gợi ý nguy hiểm được kiểm tra bằng cảnh cố định `http://localhost:8080/?start=1&demo=hint` (ảnh: [ui-hint.png](evidence/phase-2/ui-hint.png)): vòng sáng rõ khi Bóng Mực trong tầm F, viền đỏ, mũi tên đỏ chỉ Bóng Mực phía sau, mắt đỏ. Chưa thử khi chơi liên tục.
 
 ## Bằng chứng Phase 2
 Chạy lại: `bash scripts/verify.sh` (log: [evidence/phase-2/verify.log](evidence/phase-2/verify.log), scenario trong `scenarios/`).

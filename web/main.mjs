@@ -338,7 +338,11 @@ function startNight(n) {
   world = buildWorld(NIGHTS[n], n);
   scene.add(world);
   seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-  game = createSim({ contract, seed, night: n, scenario: {} });
+  // ?demo=hint: canh co dinh de kiem chung goi y nguy hiem (1 Bong Muc dang duoi o 4 m, 1 o 9 m phia sau)
+  const demo = q.get('demo') === 'hint'
+    ? { random_shades: false, random_drifters: false, player: { carried: 5 }, shades: [{ id: 'A', pos: [3, -2] }, { id: 'B', pos: [0, 9] }] }
+    : {};
+  game = createSim({ contract, seed, night: n, scenario: demo });
   yaw = 0;
   lastTimeInt = 999;
   camera.position.set(0, 9, 12);
